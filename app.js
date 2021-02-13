@@ -19,12 +19,16 @@ app.use(bodyParser.json());
 // You can have multiple static folders
 app.use(express.static(path.join(__dirname, 'public')))
 
+// MVC view engine
+app.set('views', './views')
+app.set('view engine', 'pug')
+
 app.use('/', require('./routes/shopRoute'));
 app.use('/admin', require('./routes/adminRoute'));
 
 // Handle 404 Notfound routes
 app.use((req, res, next) => {
-    res.status(404).sendFile(path.join(__dirname, 'views', '404.html'))
+    res.status(404).render('404')
 });
 
 app.use((error, req, res, next) => {

@@ -1,7 +1,15 @@
 const path = require('path')
+const products = require('./../data/products')
+
 
 const createProduct = (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'admin', 'create-product.html'))
+    console.log(req.method, req.body)
+    if(req.method === 'POST') {
+        products.push(req.body)
+        res.redirect('/')
+    } else {
+        res.render('admin/create-product', { pageTitle: 'Create Product'})
+    }
 }
 
 const getProduct = (req, res) => {
