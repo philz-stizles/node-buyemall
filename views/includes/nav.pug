@@ -6,6 +6,6 @@ nav.navbar.navbar-expand-lg.navbar-light.bg-light
         #navbarNav.collapse.navbar-collapse
             ul.navbar-nav
                 li.nav-item
-                    a.nav-link.active(aria-current='page' href='/') Shop
+                    a.nav-link(aria-current='page' href='/' class=(path==='/' ? 'active' : '')) Shop
                 li.nav-item
-                    a.nav-link(href='/admin') Create Product
+                    a.nav-link(href='/admin' class=(path==='/admin' ? 'active' : '')) Create Product
