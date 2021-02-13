@@ -1,7 +1,9 @@
 const path = require('path')
+const products = require('./../data/products')
 
 const getShop = (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'shop.html'))
+    console.log(products)
+    res.render('shop.pug', { pageTitle: 'Shop', products, path: '/' })
 }
 
 module.exports = { getShop }

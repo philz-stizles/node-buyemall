@@ -21,7 +21,7 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')))
 
 // MVC view engine
-app.engine('handlebars', expressHandlebars())
+app.engine('hbs', expresshbs({extname: '.hbs'}))
 app.set('view engine', 'handlebars')
 app.set('views', './views')
 

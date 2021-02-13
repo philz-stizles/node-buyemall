@@ -1,0 +1,20 @@
+extends layouts/main-layout.pug
+
+block links
+    link(rel='stylesheet' href='/css/shop.css')
+
+block content
+    main
+        .container 
+            h3.py-3 My Products
+            .row
+                each item in products
+                    .col
+                        .card(style='width: 18rem;')
+                            img.card-img-top(src='https://cdn.pixabay.com/photo/2016/12/10/21/26/food-1898194_960_720.jpg' alt='...')
+                            .card-body
+                                h5.card-title #{item.title}
+                                p.card-text #{item.description}
+                                a.btn.btn-primary(href='#') View Details
+                else
+                    li There are no products
