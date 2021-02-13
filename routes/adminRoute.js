@@ -1,16 +1,16 @@
 const express = require('express');
-const { createProduct, getProduct, getAllProducts, updateProduct, deleteProduct } = require('./../controllers/adminControllers');
+const productControllers = require('../controllers/productsControllers');
 
 const router = express.Router();
 
 router.route('/')
-    .get(createProduct)
-    .post(createProduct)
+    .get(productControllers.getCreateProduct)
+    .post(productControllers.postCreateProduct)
 
 router.route('/:id')
-    .get(getProduct)
-    .put(updateProduct)
-    .delete(deleteProduct)
+    .get(productControllers.getProduct)
+    .put(productControllers.updateProduct)
+    .delete(productControllers.deleteProduct)
 
 
 module.exports = router;

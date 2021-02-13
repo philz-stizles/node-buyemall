@@ -2,6 +2,7 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const expressHandlebars = require('express-handlebars');
+const errorControllers = require('./controllers/errorControllers')
 
 const app = express();
 
@@ -21,19 +22,14 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // MVC view engine
-app.engine('hbs', expressHandlebars({ extname: '.hbs'}))
-// Custom configs
-// app.engine('hbs', expressHandlebars({extname: '.hbs', layoutsDir: 'views/layouts', defaultLayout: 'main-layout'}));
-app.set('view engine', 'hbs')
-app.set('views', './views')
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 app.use('/', require('./routes/shopRoute'));
 app.use('/admin', require('./routes/adminRoute'));
 
 // Handle 404 Notfound routes
-app.use((req, res, next) => {
-    res.status(404).render('404')
-});
+app.use(errorControllers.send404);
 
 app.use((error, req, res, next) => {
     res.status(500).send(error.message);

@@ -1,9 +1,10 @@
+<link rel="stylesheet" href="/css/shop.css">
 <main>
     <div class="container"> 
         <h3 class="py-3">My Products</h3>
-        {{#if hasProducts}}
+        <% if(products.length > 0) { %>
             <div class="row row-cols-1 row-cols-md-3 g-4">
-                {{# each products}}
+                <% products.forEach>
                     <div class="col">
                         <div class="card" style="width: 18rem; height: auto;">
                             <img class="card-img-top" style="height: 15rem; object-fit:cover" src="https://cdn.pixabay.com/photo/2016/12/10/21/26/food-1898194_960_720.jpg" alt="...">
@@ -14,10 +15,10 @@
                             </div>
                         </div>
                     </div>
-                {{/each}}
+                <% products.forEach>
             </div>
-        {{else}}
+        <% } else { %>
             <div class="row">No Products Found</div>
-        {{/if}}
+        <% }%>
     </div>
 </main>
