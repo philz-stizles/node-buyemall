@@ -18,11 +18,13 @@ app.use(bodyParser.json());
 
 
 // You can have multiple static folders
-app.use(express.static(path.join(__dirname, 'public')))
+app.use(express.static(path.join(__dirname, 'public')));
 
 // MVC view engine
-app.engine('hbs', expresshbs({extname: '.hbs'}))
-app.set('view engine', 'handlebars')
+app.engine('hbs', expressHandlebars({ extname: '.hbs'}))
+// Custom configs
+// app.engine('hbs', expressHandlebars({extname: '.hbs', layoutsDir: 'views/layouts', defaultLayout: 'main-layout'}));
+app.set('view engine', 'hbs')
 app.set('views', './views')
 
 app.use('/', require('./routes/shopRoute'));

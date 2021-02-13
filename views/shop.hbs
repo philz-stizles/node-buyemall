@@ -1,20 +1,23 @@
-extends layouts/main-layout.pug
-
-block links
-    link(rel='stylesheet' href='/css/shop.css')
-
-block content
-    main
-        .container 
-            h3.py-3 My Products
-            .row
-                each item in products
-                    .col
-                        .card(style='width: 18rem;')
-                            img.card-img-top(src='https://cdn.pixabay.com/photo/2016/12/10/21/26/food-1898194_960_720.jpg' alt='...')
-                            .card-body
-                                h5.card-title #{item.title}
-                                p.card-text #{item.description}
-                                a.btn.btn-primary(href='#') View Details
-                else
-                    li There are no products
+<main>
+    <div class="container"> 
+        <h3 class="py-3">My Products</h3>
+        {{#if hasProducts}}
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {{# each products}}
+                    <div class="col">
+                        <div class="card" style="width: 18rem; height: auto;">
+                            <img class="card-img-top" style="height: 15rem; object-fit:cover" src="https://cdn.pixabay.com/photo/2016/12/10/21/26/food-1898194_960_720.jpg" alt="...">
+                            <div class="card-body">
+                                <h5 class="card-title">{{this.title}}</h5>
+                                <p class="card-text">{{this.description}}</p>
+                                <a class="btn btn-primary" href="#">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                {{/each}}
+            </div>
+        {{else}}
+            <div class="row">No Products Found</div>
+        {{/if}}
+    </div>
+</main>
