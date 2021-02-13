@@ -1,6 +1,7 @@
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
+const expressHandlebars = require('express-handlebars');
 
 const app = express();
 
@@ -19,12 +20,17 @@ app.use(bodyParser.json());
 // You can have multiple static folders
 app.use(express.static(path.join(__dirname, 'public')))
 
+// MVC view engine
+app.engine('handlebars', expressHandlebars())
+app.set('view engine', 'handlebars')
+app.set('views', './views')
+
 app.use('/', require('./routes/shopRoute'));
 app.use('/admin', require('./routes/adminRoute'));
 
 // Handle 404 Notfound routes
 app.use((req, res, next) => {
-    res.status(404).sendFile(path.join(__dirname, 'views', '404.html'))
+    res.status(404).render('404')
 });
 
 app.use((error, req, res, next) => {
