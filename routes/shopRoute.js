@@ -1,9 +1,21 @@
 const express = require('express');
-const productControllers = require('./../controllers/productsControllers');
+const shopControllers = require('../controllers/shopControllers');
 
 const router = express.Router();
 
 router.route('/')
-    .get(productControllers.getAllProducts)
+    .get(shopControllers.getProductList)
+
+router.route('/productDetails/:id')
+    .get(shopControllers.getProductDetails)
+
+router.route('/cart')
+    .get(shopControllers.getCart)
+
+router.route('/checkout')
+    .get(shopControllers.getCheckout)
+
+router.route('/orders')
+    .get(shopControllers.getOrders)
 
 module.exports = router;

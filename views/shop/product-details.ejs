@@ -1,0 +1,27 @@
+<%- include('../includes/head') %>
+        <link rel="stylesheet" href="/css/shop.css">
+    </head>
+    <body>
+        <%- include('../includes/header') %>
+
+        <main>
+            <div class="container"> 
+                <h3 class="py-3">Product Details</h3>
+                <% if(product) { %>
+                    <div class="row row-cols-1 row-cols-md-3 g-4">
+                        <div class="col">
+                            <div class="card" style="width: 18rem; height: auto;">
+                                <img class="card-img-top" style="height: 15rem; object-fit:cover" src="https://cdn.pixabay.com/photo/2016/12/10/21/26/food-1898194_960_720.jpg" alt="...">
+                                <div class="card-body">
+                                    <h5 class="card-title"><%= product.title %></h5>
+                                    <p class="card-text"><%= product.description %></p>
+                                    <p class="text-muted lead">$<%= product.price %></p>
+                                    <a class="btn btn-primary" href="#">Add to Cart</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }%>
+            </div>
+        </main>
+<%- include('../includes/end') %>

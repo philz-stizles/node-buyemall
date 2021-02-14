@@ -1,13 +1,16 @@
+const { v4: uuidv4 } = require('uuid');
 const products = [];
 
 module.exports = class Product {
-    constructor(title, description, price) {
+    constructor(title, description, price, imageUrl) {
         this.title = title;
         this.description = description;
         this.price = price;
+        this.imageUrl = imageUrl;
     }
 
     save() {
+        this.id = uuidv4()
         products.push(this)
     }
 
@@ -26,7 +29,7 @@ module.exports = class Product {
         targetProduct.price = this.price;
     }
 
-    removeById(id) {
+    static removeById(id) {
         products = products.filter(p => p.id !== id)
     }
 }

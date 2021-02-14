@@ -1,24 +1,32 @@
-<link rel="stylesheet" href="/css/shop.css">
-<main>
-    <div class="container"> 
-        <h3 class="py-3">My Products</h3>
-        <% if(products.length > 0) { %>
-            <div class="row row-cols-1 row-cols-md-3 g-4">
-                <% products.forEach>
-                    <div class="col">
-                        <div class="card" style="width: 18rem; height: auto;">
-                            <img class="card-img-top" style="height: 15rem; object-fit:cover" src="https://cdn.pixabay.com/photo/2016/12/10/21/26/food-1898194_960_720.jpg" alt="...">
-                            <div class="card-body">
-                                <h5 class="card-title">{{this.title}}</h5>
-                                <p class="card-text">{{this.description}}</p>
-                                <a class="btn btn-primary" href="#">View Details</a>
+<%- include('../includes/head') %>
+        <link rel="stylesheet" href="/css/shop.css">
+    </head>
+    <body>
+        <%- include('../includes/header') %>
+
+        <main>
+            <div class="container"> 
+                <h3 class="py-3">My Products</h3>
+                <% if(products.length > 0) { %>
+                    <div class="row row-cols-1 row-cols-md-3 g-4">
+                        <% for(let item of products) { %>
+                            <div class="col">
+                                <div class="card" style="width: 18rem; height: auto;">
+                                    <img class="card-img-top" style="height: 15rem; object-fit:cover" src="https://cdn.pixabay.com/photo/2016/12/10/21/26/food-1898194_960_720.jpg" alt="...">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><%= item.title %></h5>
+                                        <p class="card-text"><%= item.description %></p>
+                                        <p class="text-muted lead">$<%= item.price %></p>
+                                        <a class="btn btn-primary" href="/productDetails/<%= item.id%>">Details</a>
+                                        <a class="btn btn-primary" href="#">Add to Cart</a>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        <% } %>
                     </div>
-                <% products.forEach>
+                <% } else { %>
+                    <div class="row">No Products Found</div>
+                <% }%>
             </div>
-        <% } else { %>
-            <div class="row">No Products Found</div>
-        <% }%>
-    </div>
-</main>
+        </main>
+<%- include('../includes/end') %>
