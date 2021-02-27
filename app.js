@@ -1,6 +1,7 @@
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
+const { graphqlHTTP } = require('express-graphql')
 
 const app = express();
 
@@ -21,6 +22,12 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 app.use('/', require('./routes/shopRoute'));
 app.use('/admin', require('./routes/adminRoute'));
+
+app.use('/graphql', graphqlHTTP({
+    schema: require('./graphql/schema'),
+    rootValue: require('./graphql/resolvers'),
+    graphiql: true
+}))
 
 // Handle 404 Notfound routes
 app.use((req, res, next) => {
