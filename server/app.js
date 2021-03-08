@@ -5,8 +5,10 @@ require('dotenv').config()
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
+const multer = require('multer');
 const mongoose = require('mongoose');
-const { graphqlHTTP } = require('express-graphql')
+const { graphqlHTTP } = require('express-graphql');
+const { graphqlAuth } = require('./graphql/utils/auth');
 
 const app = express();
 
@@ -17,6 +19,12 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 app.use(bodyParser.json());
 
+// parse Files
+app.use(multer({
+    storage: null,
+    fileFilter: null
+}).single('image'));
+
 // res & req as you already know them from node HTTP, but with extra features
 // app.use((req, res, next) => {})
 // app.use('/', (req, res, next) => {})
@@ -26,17 +34,21 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE')
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    if(req.method === 'OPTIONS') {
+        return res.sendStatus(200)
+    }
     next()
 })
 
 // You can have multiple static folders
 app.use(express.static(path.join(__dirname, 'public')))
 
-app.use('/', require('./routes/shopRoute'));
-app.use('/admin', require('./routes/adminRoute'));
+app.use('/', require('./routes/shop-route'));
+app.use('/auth', require('./routes/auth-route'));
+app.use('/admin', require('./routes/admin-route'));
 
 // Graphql
-app.use('/graphql', graphqlHTTP({
+app.use('/graphql', graphqlAuth, graphqlHTTP({
     schema: require('./graphql/schema'),
     rootValue: require('./graphql/resolvers'),
     graphiql: true
@@ -54,7 +66,7 @@ app.use((error, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 // Initialize DB
-mongoose.connect(process.env.MONGOOSE_DB_URI, {
+mongoose.connect(process.env.MONGODB_LOCAL_URI, {
     useNewUrlParser: true,
     useCreateIndex: true,
     useFindAndModify: false,
