@@ -1,5 +1,4 @@
 // npm install express body-parser cors express-validator multer dotenv
-// Graphql - npm install express-graphql graphql
 // npm install --save-dev nodemon
 require('dotenv').config()
 const path = require('path');
@@ -7,8 +6,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const mongoose = require('mongoose');
-const { graphqlHTTP } = require('express-graphql');
-const { graphqlAuth } = require('./graphql/utils/auth');
 
 const app = express();
 
@@ -48,13 +45,6 @@ app.use('/auth', require('./routes/auth-routes'));
 app.use('/admin', require('./routes/admin-routes'));
 app.use('/api/v1/posts', require('./routes/post-routes'));
 app.use('/api/v1/products', require('./routes/product-routes'));
-
-// Graphql
-app.use('/graphql', graphqlAuth, graphqlHTTP({
-    schema: require('./graphql/schema'),
-    rootValue: require('./graphql/resolvers'),
-    graphiql: true
-}))
 
 // Handle 404 Notfound routes
 app.use((req, res, next) => {

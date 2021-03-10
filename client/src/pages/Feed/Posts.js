@@ -39,13 +39,12 @@ class Posts extends Component {
             `
         }
 
-        fetch('http://localhost:5000/graphql', { 
-            method: 'POST',
+        fetch('http://localhost:8009/api/v1/posts', { 
+            method: 'GET',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.props.userCredentials.token}`
-            },
-            body: JSON.stringify(graphqlQuery)
+                // 'Authorization': `Bearer ${this.props.userCredentials.token}`
+            }
         })
             .then(response => response.json())
             .then(responseData => {
@@ -54,7 +53,7 @@ class Posts extends Component {
                     
                 }
                 
-                const { posts, count } = responseData.data.posts
+                const { posts, count } = responseData.data
                 this.setState({ posts: { items: posts, count  }, postsLoading: false })
             })
             .catch(error => {

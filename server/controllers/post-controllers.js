@@ -1,5 +1,5 @@
 const { validationResult } = require('express-validator')
-const Post = require('./../models/Post')
+const Post = require('../models/Post')
 
 exports.createPost = (req, res) => {
     const errors = validationResult(req.body)
@@ -39,7 +39,10 @@ exports.getPost = (req, res) => {
 exports.getAllPosts = async (req, res) => {
     Post.find()
         .then((posts) => {
-            res.status(200).send({ status: true, data: posts, message: 'Retrieved' })
+            res.status(200).send({ status: true, data: {
+                posts,
+                count: posts.length
+            }, message: 'Retrieved' })
         })
         .catch(error => {
             console.log(error)
