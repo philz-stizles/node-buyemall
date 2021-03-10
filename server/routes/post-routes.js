@@ -11,7 +11,7 @@ router.route('/')
     ], createPost)
     .get(getAllPosts)
 
-router.use('/:id')
+router.route('/:id')
     .put(updatePost)
     .get(getPost)
     .delete(deletePost)

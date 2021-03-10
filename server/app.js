@@ -43,9 +43,11 @@ app.use((req, res, next) => {
 // You can have multiple static folders
 app.use(express.static(path.join(__dirname, 'public')))
 
-app.use('/', require('./routes/shop-route'));
-app.use('/auth', require('./routes/auth-route'));
-app.use('/admin', require('./routes/admin-route'));
+app.use('/', require('./routes/shop-routes'));
+app.use('/auth', require('./routes/auth-routes'));
+app.use('/admin', require('./routes/admin-routes'));
+app.use('/api/v1/posts', require('./routes/post-routes'));
+app.use('/api/v1/products', require('./routes/product-routes'));
 
 // Graphql
 app.use('/graphql', graphqlAuth, graphqlHTTP({

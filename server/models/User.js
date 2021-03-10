@@ -6,6 +6,6 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true },
     status: { type: String },
     posts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Posts' }]
-}, { timestamp: true })
+}, { timestamps: true })
 
 module.exports = User = mongoose.model('Users', UserSchema)
