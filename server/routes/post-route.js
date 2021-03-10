@@ -1,17 +1,17 @@
 const express = require('express');
 const { body } = require('express-validator')
-const { createPost, getAllPosts, getPost, updatePost, deletePost } = require('../controllers/postControllers');
+const { createPost, getAllPosts, getPost, updatePost, deletePost } = require('../controllers/post-controllers');
 
 const router = express.Router();
 
 router.route('/')
-    .post([
+    .post(
         body('title').trim().isLength({ min: 5 }),
         body('content').trim().isLength({ min: 5 })
-    ], createPost)
+    , createPost)
     .get(getAllPosts)
 
-router.use('/:id')
+router.route('/:id')
     .put(updatePost)
     .get(getPost)
     .delete(deletePost)

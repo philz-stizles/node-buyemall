@@ -6,9 +6,11 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const multer = require('multer');
-const mongoose = require('mongoose');
 const { graphqlHTTP } = require('express-graphql');
+
+const db = require('./db/mysql')
 const { graphqlAuth } = require('./graphql/utils/auth');
+
 
 const app = express();
 
@@ -44,8 +46,9 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public')))
 
 app.use('/', require('./routes/shop-route'));
-app.use('/auth', require('./routes/auth-route'));
+app.use('/api/v1/auth', require('./routes/auth-route'));
 app.use('/admin', require('./routes/admin-route'));
+app.use('/api/v1/posts', require('./routes/post-route'));
 
 // Graphql
 app.use('/graphql', graphqlAuth, graphqlHTTP({
@@ -63,22 +66,11 @@ app.use((error, req, res, next) => {
     res.status(500).send(error.message);
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 
-// Initialize DB
-mongoose.connect(process.env.MONGODB_LOCAL_URI, {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useFindAndModify: false,
-    useUnifiedTopology: true
-})
-    .then(() => {
-        console.log('DB connected');
         app.listen(PORT, (err) => {
             if(err) {
                 console.log(`Could not start server ${err.message}`);
             }
             console.log(`Buy em'all Server running on PORT ${PORT}`);
         });   
-    })
-    .catch(error => console.log(error))

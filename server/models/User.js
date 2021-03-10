@@ -1,11 +1,25 @@
-const mongoose = require('mongoose')
+const db = require('./../db/mysql')
+class User {
+    constructor(obj) {
+        this.username = obj.username
+        this.email = obj.email
+        this.password = obj.password
+    }
 
-const UserSchema = new mongoose.Schema({
-    username: { type: String, required: true },
-    email: { type: String, required: true },
-    password: { type: String, required: true },
-    status: { type: String },
-    posts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Posts' }]
-}, { timestamp: true })
+    save() {
+        console.log(this)
+        const query = `INSERT INTO ${process.env.DB_NAME}.Users (username, email, password) VALUES(?, ?, ?);`
+        // execute will internally call prepare and query
+        return db
+            .execute(query, [this.username, this.email, this.password])
+            .then(([result]) => {
+                console.log(result) // result contains metadata of execution
+                return result
+            })
+            .catch(error => { 
+                throw(error)
+            })
+    }
+}
 
-module.exports = User = mongoose.model('Users', UserSchema)
+module.exports = User
