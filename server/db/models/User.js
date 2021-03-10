@@ -1,4 +1,4 @@
-const db = require('./../db/mysql')
+const sequelize = require('sequelize')
 class User {
     constructor(obj) {
         this.username = obj.username

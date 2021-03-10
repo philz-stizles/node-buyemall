@@ -1,6 +1,6 @@
 const { validationResult } = require('express-validator')
-const Post = require('../models/Post')
-const db = require('../db/mysql')
+const Post = require('../db/models/Post')
+const db = require('../db')
 
 exports.createPost = (req, res) => {
     const errors = validationResult(req)

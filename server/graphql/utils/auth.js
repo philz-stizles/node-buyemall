@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const User = require('../../models/User')
+const User = require('../../db/models/User')
 
 exports.graphqlAuth = async (req, res, next) => {
     // Check if Authorization header exists

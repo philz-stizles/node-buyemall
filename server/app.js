@@ -8,8 +8,9 @@ const bodyParser = require('body-parser');
 const multer = require('multer');
 const { graphqlHTTP } = require('express-graphql');
 
-const db = require('./db/mysql')
+const db = require('./db')
 const { graphqlAuth } = require('./graphql/utils/auth');
+const sequelize = require('./db');
 
 
 const app = express();
@@ -66,11 +67,19 @@ app.use((error, req, res, next) => {
     res.status(500).send(error.message);
 });
 
-const PORT = process.env.PORT;
+sequelize.sync()
+    .then(result => {
+        // console.log(result);
+        console.log('DB Connection has been established successfully.');
 
+        const PORT = process.env.PORT;
         app.listen(PORT, (err) => {
             if(err) {
                 console.log(`Could not start server ${err.message}`);
             }
             console.log(`Buy em'all Server running on PORT ${PORT}`);
-        });   
+        });  
+    })
+    .catch(error => {
+        console.log(error)
+    }) 
