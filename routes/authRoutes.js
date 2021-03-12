@@ -8,7 +8,7 @@ router.route('/signup')
     .get(authControllers.getSignupView)
     .post([
         check('username').not().isEmpty().withMessage('Username is required'),
-        check('email').isEmail().normalizeEmail().withMessage('Email is required'),
+        check('email').isEmail().withMessage('Email is required').normalizeEmail(),
         body('password', 'Password must be greater than 6, and contain numbers and letters')
             .isLength({ min: 6 })
             .isAlphanumeric()
@@ -24,8 +24,7 @@ router.route('/signup')
 router.route('/login')
     .get(authControllers.getLoginView)
     .post([
-        check('username'),
-        check('email').isEmail().normalizeEmail().withMessage('Email is required')
+        check('email').isEmail().withMessage('Email is required').normalizeEmail()
     ], authControllers.login)
 
 router.route('/forgot-password')
