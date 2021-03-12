@@ -1,7 +1,14 @@
-const mongoose = require('mongoose')
+const fs = require('fs')
+const path = require('path')
 const { v4: uuidv4 } = require('uuid')
 
-const products = []
+const filePath = path.join(__dirname, '..', 'data', 'products.json')
+const readFromFile = (cb) => {
+    fs.readFile(filePath, (error, fileContent) => {
+        return (error) ? cb([]) : cb(JSON.parse(fileContent))
+    })
+}
+
 class Product {
     constructor(obj) {
         this.id = uuidv4() 
@@ -12,16 +19,32 @@ class Product {
         this.imageURL = obj.imageURL
     }
 
-    save() {
-        products.unshift(this)
+    save(cb) {
+        readFromFile(products => {
+            products.unshift(this)
+
+            fs.writeFile(filePath, JSON.stringify(products), (error) => {
+                
+                if(error) {
+                    console.log(error)
+                    cb(null, error)
+                } else {
+                    cb(this, null)
+                }
+            })
+            
+        })
     }
 
-    static findAll() {
-        return products
+    static findAll(cb) {
+        readFromFile(cb)
     }
 
-    static findById(id) {
-        return products.find(item => item.id === id)
+    static findById(id, cb) {
+        fs.readFile(filePath, (error, fileContent) => {
+            const products = (error) ? [] : JSON.parse(fileContent)
+            return products.find(item => item.id === id)
+        })
     }
 
     static findByIdAndUpdate(id, obj) {

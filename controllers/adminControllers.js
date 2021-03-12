@@ -20,14 +20,13 @@ exports.createProduct = (req, res) => {
 
     const { title, description, price, imageURL } = req.body;
     const newProduct = new Product({ title, description, price, imageURL, creator: req.user })
-    newProduct.save()
-        .then(newProduct => {
-            res.redirect('/admin/products')
-        })
-        .catch(error => {
+    newProduct.save((product, error) => {
+        if(error) {
             console.log(error)
-            res.redirect('/admin/create-product')
-        })
+            return res.redirect('/admin/create-product')
+        }
+        res.redirect('/admin/products')
+    })
 }
 
 exports.getProductsView = (req, res) => {
