@@ -6,7 +6,8 @@
 
         <main>
             <div class="container"> 
-                <h3 class="py-3">My Products</h3>
+                <div class="row"><h3 class="py-3 px-0">My Products</h3></div>
+                
                 <% if(products.length > 0) { %>
                     <div class="row row-cols-1 row-cols-md-3 g-4">
                         <% for(let item of products) { %>
@@ -17,7 +18,7 @@
                                         <h5 class="card-title"><%= item.title %></h5>
                                         <p class="card-text"><%= item.description %></p>
                                         <p class="text-muted lead">$<%= item.price %></p>
-                                        <a class="btn btn-primary" href="/productDetails/<%= item.id%>">Details</a>
+                                        <a class="btn btn-primary" href="/product-details/<%= item.id%>">Details</a>
                                         <a class="btn btn-primary" href="#">Add to Cart</a>
                                     </div>
                                 </div>
@@ -25,7 +26,7 @@
                         <% } %>
                     </div>
                 <% } else { %>
-                    <div class="row">No Products Found</div>
+                    <h5 class="row">No Products Found</h5>
                 <% }%>
             </div>
         </main>

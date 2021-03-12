@@ -1,0 +1,14 @@
+EMAILING
+nodemailer
+nodemailer-sendgrid-transport
+
+#ERROR HANDLING
+Different types o errors to handle
+1.) Technical/Network Errors
+    -   MongoDB server is down - Show error page to the user to let the user know that something is wrong on our end, 
+    that we are sorry. You also want to behind the scenes send an email to the administrator
+
+2.) "Expected" Errors
+    -   File can't be read, database operation fails
+
+3.) Bugs/ Logical Errors

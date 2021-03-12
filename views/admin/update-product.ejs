@@ -6,23 +6,28 @@
 
         <main id="main">
             <div class="container">
-                <h3 class="py-3 text-center">Create Product</h3>
-                <form class="form" action="/admin/createProduct" method="POST">
+                <h3 class="py-3 text-center">Update Product</h3>
+                <form class="form" action="/admin/update-product/<%= product.id %>" method="POST">
                     <div class="mb-3">
                         <label class="form-label" for="title">Title</label>
-                        <input class="form-control" id="title" type="text" name="title" placeholder="Title">
+                        <input class="form-control" id="title" type="text" name="title" placeholder="Title" 
+                            value="<%= (product) ? (product.title) ? product.title : '' : ''%>">
                     </div>
                     <div class="mb-3">
                         <label class="form-label" for="description">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="5"></textarea>
+                        <textarea class="form-control" id="description" name="description" rows="5">
+                            <%= (product) ? (product.description) ? product.description : '' : ''%>
+                        </textarea>
                     </div>
                     <div class="mb-3">
                         <label class="form-label" for="price">Price</label>
-                        <input class="form-control" id="price" type="number" min="0" step="0.01" name="price" placeholder="Price">
+                        <input class="form-control" id="price" type="number" min="0" step="0.01" name="price" placeholder="Price"
+                            value="<%= (product) ? (product.price) ? product.price : '' : ''%>">
                     </div>
                     <div class="mb-3">
                         <label class="form-label" for="imageURL">Image URL</label>
-                        <input class="form-control" id="imageURL" type="text" name="imageURL" placeholder="Image URL">
+                        <input class="form-control" id="imageURL" type="text" name="imageURL" placeholder="Image URL"
+                            value="<%= (product) ? (product.imageURL) ? product.imageURL : '' : ''%>">
                     </div>
                     <button class="btn btn-primary" type="submit">Add Product</button>
                 </form>

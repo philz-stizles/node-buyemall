@@ -1,0 +1,37 @@
+<%- include('../includes/head') %>
+        <link rel="stylesheet" href="/css/login.css">
+    </head>
+    <body>
+        <%- include('../includes/header') %>
+
+        <main id="main">
+            <div class="container">
+                <h3 class="py-3 text-center">Signup</h3>
+                <form class="form" action="/auth/signup" method="POST">
+                    <% if(errorMessage) { %>
+                        <div class="alert alert-danger" role="alert"><%= errorMessage %></div>
+                    <% } %>
+                    <div class="mb-3">
+                        <label class="form-label" for="username">Username</label>
+                        <input value="<%= oldInput.username %>" class="form-control" id="username" type="text" name="username" placeholder="Username">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="email">Email</label>
+                        <input value="<%= oldInput.email %>" class="form-control" id="email" type="email" name="email" placeholder="Email">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="password">Password</label>
+                        <input value="<%= oldInput.password %>" class="form-control" id="password" type="password" name="password" placeholder="xxxxxxx">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="cpassword">Confirm Password</label>
+                        <input class="form-control" id="cpassword" type="password" name="cpassword" placeholder="xxxxxxx">
+                    </div>
+                    
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                    <button class="btn btn-primary" type="submit">Signup</button>
+                </form>
+            </div>
+        </main> 
+    </body>
+<%- include('../includes/end') %>

@@ -7,7 +7,7 @@
         <main id="main">
             <div class="container">
                 <h3 class="py-3 text-center">Create Product</h3>
-                <form class="form" action="/admin/createProduct" method="POST">
+                <form class="form" action="/admin/create-product" method="POST">
                     <div class="mb-3">
                         <label class="form-label" for="title">Title</label>
                         <input class="form-control" id="title" type="text" name="title" placeholder="Title">
@@ -24,6 +24,7 @@
                         <label class="form-label" for="imageURL">Image URL</label>
                         <input class="form-control" id="imageURL" type="text" name="imageURL" placeholder="Image URL">
                     </div>
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                     <button class="btn btn-primary" type="submit">Add Product</button>
                 </form>
             </div>

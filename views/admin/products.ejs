@@ -17,8 +17,11 @@
                                         <h5 class="card-title"><%= item.title %></h5>
                                         <p class="card-text"><%= item.description %></p>
                                         <p class="text-muted lead">$<%= item.price %></p>
-                                        <a class="btn btn-primary" href="admin/">View</a>
-                                        <a class="btn btn-primary" href="admin/">Edit</a>
+                                        <a class="btn btn-primary" href="/admin/update-product/<%= item.id %>">Edit</a>
+                                        <form style="display: inline-block;" action="/admin/delete-product/<%= item.id %>" method="POST">
+                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>

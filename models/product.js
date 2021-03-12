@@ -1,35 +1,11 @@
-const { v4: uuidv4 } = require('uuid');
-const products = [];
+const mongoose = require('mongoose')
 
-module.exports = class Product {
-    constructor(title, description, price, imageUrl) {
-        this.title = title;
-        this.description = description;
-        this.price = price;
-        this.imageUrl = imageUrl;
-    }
+const ProductSchema = new mongoose.Schema({
+    title: { type: String, required: true },
+    price: { type: Number, required: true },
+    description: { type: String, required: true },
+    imageURL: { type: String, required: true },
+    // creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+}, { timestamps: true })
 
-    save() {
-        this.id = uuidv4()
-        products.push(this)
-    }
-
-    static fetchAll() {
-        return products
-    }
-
-    static fetchById(id) {
-        return products.find(p => p.id === id)
-    }
-
-    updateById(id) {
-        const targetProduct = products.find(p => p.id === id)
-        targetProduct.title = this.title;
-        targetProduct.description = this.description;
-        targetProduct.price = this.price;
-    }
-
-    static removeById(id) {
-        products = products.filter(p => p.id !== id)
-    }
-}
+module.exports = Product = mongoose.model('Product', ProductSchema)

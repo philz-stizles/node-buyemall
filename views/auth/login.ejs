@@ -1,0 +1,31 @@
+<%- include('../includes/head') %>
+        <link rel="stylesheet" href="/css/login.css">
+    </head>
+    <body>
+        <%- include('../includes/header') %>
+
+        <main id="main">
+            <div class="container">
+                <h3 class="py-3 text-center">Login</h3>
+                <form class="form" action="/auth/login" method="POST">
+                    <% if (errorMessage) { %>
+                        <div class="alert alert-danger" role="alert"><%= errorMessage %></div>
+                    <% } %>
+                    <div class="mb-3">
+                        <label class="form-label" for="password">Email</label>
+                        <input autocomplete="off" value="<%= oldInput.email %>" class="form-control" id="email" type="email" name="email" placeholder="Email">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="password">Password</label>
+                        <input value="<%= oldInput.password %>" class="form-control" id="password" type="password" name="password" placeholder="xxxxxxx">
+                    </div>
+                    
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                    <button class="btn btn-primary" type="submit">Login</button>
+                    <div class="d-block py-3 text-center"><a href="/auth/forgot-password">Reset Password</a></div>
+                </form>
+                
+            </div>
+        </main> 
+    </body>
+<%- include('../includes/end') %>

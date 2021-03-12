@@ -1,31 +1,93 @@
+const { validationResult } = require('express-validator')
 const Product = require('../models/product')
 
-exports.getCreateProduct = (req, res) => {
+exports.getCreateProductView = (req, res) => {
     res.render('admin/create-product', { 
         pageTitle: 'Create Product', 
         path: '/admin/createProduct'
     });
 }
 
-exports.getViewProducts = (req, res) => {
-    const products = Product.fetchAll();
-    res.render('admin/view-products', { 
-        pageTitle: 'View Products', 
-        products, 
-        path: '/admin/viewProducts',
-        hasProducts: products.length > 0 
-    });
-}
+exports.createProduct = (req, res) => {
+    var errors = validationResult(req)
+    if(!errors.isEmpty()) {
+        return res.status(422).render('admin/update-product', {
+            path: '/admin/update-product',
+            pageTitle: 'Signup',
+            errorMessage: errors.array()[0].msg
+        })
+    }
 
-exports.postCreateProduct = (req, res) => {
-    const { title, description, price } = req.body;
-    const newProduct = new Product(title, description, price)
+    const { title, description, price, imageURL } = req.body;
+    const newProduct = new Product({ title, description, price, imageURL, creator: req.user })
     newProduct.save()
-    res.redirect('/')
+        .then(newProduct => {
+            res.redirect('/admin/products')
+        })
+        .catch(error => {
+            console.log(error)
+            res.redirect('/admin/create-product')
+        })
 }
 
-exports.getProduct = (req, res) => {
+exports.getProductsView = (req, res) => {
+    Product.find()
+        .then(products => {
+            res.render('admin/products', { 
+                pageTitle: 'View Products', 
+                products, 
+                path: '/admin/products',
+                hasProducts: products.length > 0 
+            });
+        })
+        .catch(error => console.log(error))
     
+}
+
+exports.getProductDetailView = (req, res) => {
+    Product.findById(req.params.id)
+        .then(product => {
+            res.render('admin/products', { 
+                pageTitle: 'View Products', 
+                product, 
+                path: '/admin/products',
+                hasProducts: products.length > 0 
+            });
+        })
+        .catch(error => console.log(error))
+}
+
+exports.getProductUpdateView = (req, res) => {
+    Product.findById(req.params.id)
+        .then(product => {
+            res.render('admin/update-product', { 
+                pageTitle: 'View Products', 
+                product, 
+                path: '/admin/update-product',
+                productExists: product !== null && product !== undefined 
+            });
+        })
+        .catch(error => console.log(error))
+}
+
+exports.updateProduct = (req, res) => {
+    const { title, description, price, imageURL} = req.body
+    Product.findById(req.params.id)
+        .then(product => {
+            product.title = title
+            product.description = description
+            product.price = price
+            product.imageURL = imageURL
+
+            return product.save()
+        })
+        .then(updatedProduct => {
+            res.redirect('/admin/products')
+        })
+        .catch(error => {
+            console.log(error)
+            res.redirect(`/admin/updated-product/${req.params.id}`)
+        })
 }
 
 exports.getAllProducts = (req, res) => {
@@ -38,11 +100,12 @@ exports.getAllProducts = (req, res) => {
     })
 }
 
-exports.updateProduct = (req, res) => {
-
-}
-
 exports.deleteProduct = (req, res) => {
-    Product.removeById(req.params.id)
-    res.redirect('/admin/viewProducts')
+    Product.findByIdAndRemove(req.params.id)
+        .then(() => {
+            res.redirect('/admin/products')
+        })
+        .catch(error => console.log(error))
+
+    
 }
