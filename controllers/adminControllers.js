@@ -8,7 +8,7 @@ const createProduct = (req, res) => {
         products.push(req.body)
         res.redirect('/')
     } else {
-        res.render('admin/create-product', { pageTitle: 'Create Product', path: '/admin/create-product' })
+        res.render('admin/create-product', { pageTitle: 'Create Product', path: '/admin' })
     }
 }
 
