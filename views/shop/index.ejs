@@ -19,9 +19,7 @@
                                         <p class="card-text"><%= item.description %></p>
                                         <p class="text-muted lead">$<%= item.price %></p>
                                         <a class="btn btn-primary" href="/product-details/<%= item.id%>">Details</a>
-                                        <form action="/add-to-cart/<%= item._id%>" method="POST" style="display: inline-block;">
-                                            <button type="submit" class="btn btn-primary" href="#">Add to Cart</button>
-                                        </form>
+                                        <%- include('../includes/add-to-cart.ejs') %>
                                     </div>
                                 </div>
                             </div>

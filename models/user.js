@@ -1,7 +1,13 @@
-const mongoose = require('mongoose')
+const fs = require('fs')
+const path = require('path')
 const { v4: uuidv4 } = require('uuid')
 
-const users = []
+const filePath = path.join(__dirname, '..', 'data', 'users.json')
+const readFromFile = (cb) => {
+    fs.readFile(filePath, (error, fileContent) => {
+        return (error) ? cb([]) : cb(JSON.parse(fileContent))
+    })
+}
 class User {
     constructor(obj) {
         this.id = uuidv4() 
@@ -20,8 +26,21 @@ class User {
         }
     }
 
-    save() {
-        users.unshift(this)
+    save(cb) {
+        readFromFile(users => {
+            users.unshift(this)
+
+            fs.writeFile(filePath, JSON.stringify(users, null, 4), (error) => {
+                
+                if(error) {
+                    console.log(error)
+                    cb(null, error)
+                } else {
+                    cb(this, null)
+                }
+            })
+            
+        })
     }
 
     static findAll() {
@@ -29,7 +48,17 @@ class User {
     }
 
     static findById(id) {
-        return users.find(item => item.id === id)
+        readFromFile(users => {
+            const user = users.find(item => item.id === id)
+            cb(user)
+        })
+    }
+
+    static findByEmail(email, cb) {
+        readFromFile(users => {
+            const user = users.find(item => item.email === email)
+            cb(user)
+        })
     }
 
     static findByIdAndUpdate(id, obj) {

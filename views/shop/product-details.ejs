@@ -16,7 +16,7 @@
                                     <h5 class="card-title"><%= product.title %></h5>
                                     <p class="card-text"><%= product.description %></p>
                                     <p class="text-muted lead">$<%= product.price %></p>
-                                    <a class="btn btn-primary" href="#">Add to Cart</a>
+                                    <%- include('../includes/add-to-cart.ejs') %>
                                 </div>
                             </div>
                         </div>

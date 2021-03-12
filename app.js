@@ -108,7 +108,10 @@ mongoose.connect(process.env.MONGODB_LOCAL_URI, {
             if(err) {
                 console.log(`Could not start server ${err.message}`);
             }
-            console.log(`Buy em'all Server running on PORT ${PORT}`);
+            console.log(`
+                Buy em'all Server running on PORT ${PORT}
+                Client available @ http://localhost:${PORT}
+            `);
         });   
     })
     .catch(error => console.log(error))

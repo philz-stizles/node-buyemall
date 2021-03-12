@@ -1,16 +1,14 @@
 const Product = require('../models/product')
 
 exports.getIndexView = (req, res) => {
-    Product.find()
-        .then(products => {
-            res.render('shop/', { 
-                pageTitle: 'Shop', 
-                products, 
-                path: '/',
-                hasProducts: products.length > 0,
-            })
+    Product.findAll(products => {
+        res.render('shop/', { 
+            pageTitle: 'Shop', 
+            products, 
+            path: '/',
+            hasProducts: products.length > 0,
         })
-        .catch(error => console.log(error))
+    })
 }
 
 exports.getProductsView = (req, res) => {

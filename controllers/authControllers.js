@@ -34,23 +34,28 @@ exports.signup = (req, res) => {
         })
     }
 
-    User.findOne({ email })
-        .then(user => {
-            // Check that existing user does not exist
-            if(user) {
-                req.flash('error', 'User with email already exists')
-                return res.redirect('/auth/signup')
-            }
+    User.findByEmail(email, existingUser => {
+        // Check that user does not exist already
+        if(existingUser) {
+            return res.status(422).render('auth/signup', {
+                path: '/auth/signup',
+                pageTitle: 'Signup',
+                errorMessage: 'User with email already exists',
+                oldInput: { username, email, password },
+            })
+        }
 
-            // Encrypt password
-            const salt = bcrypt.genSaltSync(12);
-            return bcrypt.hash(password, salt)
-                .then(hashedPassword => {
-                    // Create new user
-                    const newUser = new User({ username, email, password: hashedPassword })
-                    return newUser.save()
-                })
-                .then(newUser => {
+        // Encrypt password
+        const salt = bcrypt.genSaltSync(12);
+        return bcrypt.hash(password, salt)
+            .then(hashedPassword => {
+                // Create new user
+                const newUser = new User({ username, email, password: hashedPassword })
+                newUser.save((newUser, error) => {
+                    console.log(newUser)
+                    if(error) {
+                        console.log(error)
+                    }
                     console.log(process.env.MAILCHIMP_API_KEY)
                     transporter.sendMail({
                         to: newUser.email,
@@ -65,14 +70,8 @@ exports.signup = (req, res) => {
                         }
                     })
                 })
-                .catch(error => {
-                    console.log(error)
-                })
-        })
-        .catch(error => {
-            console.log(error)
-            return res.redirect('/auth/signup')
-        })
+            })
+    })
 }
 
 exports.getLoginView = (req, res) => {

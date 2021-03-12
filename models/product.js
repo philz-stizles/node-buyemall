@@ -41,9 +41,9 @@ class Product {
     }
 
     static findById(id, cb) {
-        fs.readFile(filePath, (error, fileContent) => {
-            const products = (error) ? [] : JSON.parse(fileContent)
-            return products.find(item => item.id === id)
+        readFromFile(products => {
+            const product = products.find(item => item.id === id)
+            cb(product)
         })
     }
 
