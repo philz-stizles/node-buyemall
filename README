@@ -12,3 +12,14 @@ Different types o errors to handle
     -   File can't be read, database operation fails
 
 3.) Bugs/ Logical Errors
+
+
+# TESTING
+    -   Tools: 
+        Test runner  - executing the test code - mocha, jest
+        Assertion library - validating the test outcome - chai, jest
+        Managing side-effects/external dependencies - sinon
+
+    -   what not to test:
+
+    -   Installation: npm install mocha sinon
