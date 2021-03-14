@@ -12,16 +12,19 @@
                         <% for(let item of products) { %>
                             <div class="col">
                                 <div class="card" style="width: 18rem; height: auto;">
-                                    <img class="card-img-top" style="height: 15rem; object-fit:cover" src="https://cdn.pixabay.com/photo/2016/12/10/21/26/food-1898194_960_720.jpg" alt="...">
+                                    <img class="card-img-top" style="height: 15rem; object-fit:cover" src="/<%= item.imageURL %>" alt="...">
                                     <div class="card-body">
                                         <h5 class="card-title"><%= item.title %></h5>
                                         <p class="card-text"><%= item.description %></p>
                                         <p class="text-muted lead">$<%= item.price %></p>
                                         <a class="btn btn-primary" href="/admin/update-product/<%= item.id %>">Edit</a>
-                                        <form style="display: inline-block;" action="/admin/delete-product/<%= item.id %>" method="POST">
-                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                                            <button type="submit" class="btn btn-danger">Delete</button>
-                                        </form>
+                                        <!-- <form style="display: inline-block;" action="/admin/delete-product/<%= item.id %>" method="POST"> -->
+                                            <!-- <input type="hidden" name="_csrf" value="<%= csrfToken %>" /> -->
+                                            <!-- <button type="submit" class="btn btn-danger">Delete</button> -->
+                                        <!-- </form> -->
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                                        <input type="hidden" name="productId" value="<%= item.id %>" />
+                                        <button id="deleteProduct" onclick="deleteProduct(this)" type="button" class="btn btn-danger">Delete</button>
                                     </div>
                                 </div>
                             </div>
@@ -33,3 +36,4 @@
             </div>
         </main>
 <%- include('../includes/end') %>
+<script src="/js/admin.js"></script>

@@ -20,6 +20,7 @@
                                         <p class="text-muted lead">$<%= item.price %></p>
                                         <a class="btn btn-primary" href="/product-details/<%= item.id%>">Details</a>
                                         <form action="/add-to-cart/<%= item._id%>" method="POST" style="display: inline-block;">
+                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                                             <button type="submit" class="btn btn-primary" href="#">Add to Cart</button>
                                         </form>
                                     </div>
@@ -27,6 +28,7 @@
                             </div>
                         <% } %>
                     </div>
+                    <%- include('../includes/pagination.ejs', { pagination: pagination }) %>
                 <% } else { %>
                     <h5 class="row">No Products Found</h5>
                 <% }%>

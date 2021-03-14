@@ -2,6 +2,7 @@ const path = require('path');
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
+const multer = require('multer');
 const mongoose = require('mongoose');
 const expressSession = require('express-session');
 const MongoDbStore = require('connect-mongodb-session')(expressSession);
@@ -24,20 +25,51 @@ const csrfProtection = csrf();
 // FLASH MESSAGES
 app.use(flash());
 
-// Middlewares
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }));
+// STATIC FOLDER
+// You can have multiple static folders
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// parse application/json
+// PARSE application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false })); // urlencoded data is basicly text data. So if a form is 
+// submitted without a file but other text fields, it is all encoded in text when the form is submitted. If it
+// a file form field it would be encoded as empty text because it cant extract the file as text because the 
+// file is binary data
+
+// PARSE application/json
 app.use(bodyParser.json());
+
+// PARSE FILE(S) from form - multipart/form-data
+const storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        cb(null, 'uploads/')
+    },
+    filename: function(req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+        cb(null, uniqueSuffix + '_' + file.originalname)
+    }
+})
+
+const fileFilter = (req, file, cb) => {
+    // if(file.size > process.env.FILE_MAX_SIZE) {
+    //     cb(new Error('File is too large'))
+    // }
+
+    if(!process.env.FILE_ALLOWED_TYPES.includes(file.mimetype)) {
+        // cb(new Error('File type is invalid'))
+        cb('File type is invalid', false)
+    }
+
+    cb(null, true)
+}
+
+app.use(multer({ storage: storage, fileFilter, limits: {
+    fileSize: process.env.FILE_MAX_SIZE
+  }}).single('image'))  // req.file
 
 // res & req as you already know them from node HTTP, but with extra features
 // app.use((req, res, next) => {})
 // app.use('/', (req, res, next) => {})
-
-// STATIC FOLDER
-// You can have multiple static folders
-app.use(express.static(path.join(__dirname, 'public')));
 
 // SESSION
 // npm install express-session
@@ -57,6 +89,13 @@ app.use(expressSession({
 // CSRF PROTECTION - APPLY MIDDLEWARE
 app.use(csrfProtection)
 
+// SET LOCAL 
+app.use((req, res, next) => {
+    res.locals.isAuthenticated = req.session.isAuthenticated
+    res.locals.csrfToken = req.csrfToken()
+    next()
+})
+
 app.use((req, res, next) => {
     if(!req.session.user) {
         return next()
@@ -64,17 +103,15 @@ app.use((req, res, next) => {
 
     User.findById(req.session.user._id)
         .then(user => {
+            if(!user) {
+                return next()
+            }
             req.user = user
             next()
         })
-        .catch(error => console.log(error))
-})
-
-// SET LOCAL 
-app.use((req, res, next) => {
-    res.locals.isAuthenticated = req.session.isAuthenticated
-    res.locals.csrfToken = req.csrfToken()
-    next()
+        .catch(error => {
+            throw new Error(error)
+        })
 })
 
 // MVC VIEW ENGINE
@@ -85,15 +122,19 @@ app.use('/', require('./routes/shopRoutes'));
 app.use('/auth', require('./routes/authRoutes'));
 app.use('/admin', require('./routes/adminRoutes'));
 
+// Handle 500 redirects
+app.get('/500', errorControllers.send500);
+
 // Handle 404 Notfound routes
 app.use(errorControllers.send404);
 
 app.use((error, req, res, next) => {
-    res.status(500).send(error.message);
+    // res.status(error.httpStatusCode).send(error.message);
+    // res.redirect('/500')
+    res.status(500).render('500', { pageTitle: 'Error!', path: '/500', isAuthenticated: req.session.isAuthenticated })
 });
 
-// Initialize DB
-console.log(process.env.MONGODB_LOCAL_URI)
+// Initialize DB & start Server
 mongoose.connect(process.env.MONGODB_LOCAL_URI, {
     useNewUrlParser: true,
     useCreateIndex: true,

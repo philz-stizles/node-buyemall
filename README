@@ -1,20 +1,38 @@
-EMAILING
+# EMAILING
 nodemailer
 nodemailer-sendgrid-transport
 
+Ensure that you do not block when sending emails. don not send emails in a blocking way, you can 
+// redirect while sending emails without waiting for response, do not wait for the email to be sent 
+// before redirect or other operations
+
+
 #ERROR HANDLING
 Different types o errors to handle
-1.) Technical/Network Errors
+1.) Technical/Network Errors - Where you have very little influence
     -   MongoDB server is down - Show error page to the user to let the user know that something is wrong on our end, 
     that we are sorry. You also want to behind the scenes send an email to the administrator
 
 2.) "Expected" Errors
-    -   File can't be read, database operation fails
+    -   File can't be read, database operation fails - Inform the user aand give the user the ability to retry
 
-3.) Bugs/ Logical Errors
+3.) Bugs/ Logical Errors - Fix during development through extensive testing - These errors are our fault
+
+- Thrown Errors - Synchronous or Asynchronous code through try catch - Directly handle error or use express 
+error handling function
+- No error is thrown - But you know you cannot continue code execution e.g user login detects user does not exist
+validate values - throw error or directly handle error
+- Possible Output
+    Error Page e,g 500 Page, Not found
+    Return intended Page/Response with error information
+    Redirect - e.g if user is trying to access a page that they do not have access to
 
 
-# TESTING
+# PDF GENERATION
+    npm install pdfkit
+
+
+#   TESTING
     -   Tools: 
         Test runner  - executing the test code - mocha, jest
         Assertion library - validating the test outcome - chai, jest
@@ -23,3 +41,10 @@ Different types o errors to handle
     -   what not to test:
 
     -   Installation: npm install mocha sinon
+
+
+
+#   ASYNC REQUESTS
+
+    -   Sometimes you do not want to reload the entire page when performing an action, for example deleting an item
+    See the admin/products for an implementation of async delete without reloading the page using js which is run on the client

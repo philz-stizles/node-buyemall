@@ -15,7 +15,8 @@ router.route('/product-details/:id')
 
 router.get('/cart', authenticate, shopControllers.getCartView)
 router.post('/add-to-cart/:id', authenticate, shopControllers.addToCart)
-router.post('/remove-from-cart/:id', authenticate, shopControllers.removeFromCart)
+router.post('/remove-from-cart', authenticate, shopControllers.removeFromCart) // alternative method passing 
+// the id in the req.body
 
 
 router.route('/checkout')
@@ -24,5 +25,8 @@ router.route('/checkout')
 router.route('/orders')
     .post(authenticate, shopControllers.createOrder)
     .get(authenticate, shopControllers.getOrdersView)
+
+router.route('/orders/:id')
+    .get(authenticate, shopControllers.getInvoice)
 
 module.exports = router;

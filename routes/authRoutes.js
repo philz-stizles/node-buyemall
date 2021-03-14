@@ -24,12 +24,30 @@ router.route('/signup')
 router.route('/login')
     .get(authControllers.getLoginView)
     .post([
-        check('email').isEmail().withMessage('Email is required').normalizeEmail()
+        check('email').trim().isEmail().withMessage('Email is required').normalizeEmail(),
+        check('password').trim().isLength({ min: 6 }).withMessage('Password must be greater than 6 characters')
     ], authControllers.login)
 
 router.route('/forgot-password')
     .get(authControllers.getForgotPasswordView)
     .post([check('email').isEmail().withMessage('Email is required')], authControllers.submitForgotPassword)
+
+router.route('/new-password/:token')
+    .get(authControllers.getNewPasswordView)
+    
+router.route('/new-password')
+    .post([
+        body('newPassword', 'Password must be greater than 6, and contain numbers and letters')
+            .isLength({ min: 6 })
+            .isAlphanumeric()
+            .trim(),
+        body('confirmNewPassword').custom((value, { req }) => {
+            if(value !== req.body.newPassword) {
+                throw new Error('Passwords must match')
+            }
+            return true
+        }).trim()
+    ], authControllers.submitNewPassword)
 
 router.post('/logout', authControllers.logout)
 

@@ -51,7 +51,6 @@ exports.signup = (req, res) => {
                     return newUser.save()
                 })
                 .then(newUser => {
-                    console.log(process.env.MAILCHIMP_API_KEY)
                     transporter.sendMail({
                         to: newUser.email,
                         from: process.env.EMAIL_FROM,
@@ -67,6 +66,9 @@ exports.signup = (req, res) => {
                 })
                 .catch(error => {
                     console.log(error)
+                    const err = new Error(error)
+                    err.httpStatusCode = 500
+                    return next(err)
                 })
         })
         .catch(error => {
@@ -89,10 +91,11 @@ exports.login = (req, res) => {
     const { email, password } = req.body;
     var errors = validationResult(req)
     if(!errors.isEmpty()) {
+        console.log(errors.array())
         return res.status(422).render('auth/login', {
             path: '/auth/login',
             pageTitle: 'Login',
-            errorMessage: errors.array()[0].msg,
+            errorMessage: undefined,
             oldInput: { email, password },
             validationErrors: errors.array()
         })
@@ -123,7 +126,6 @@ exports.login = (req, res) => {
                         })
                     }
                     
-                    console.log(existingUser)
                     // req.session is added by the express-session middleware
                     req.session.isAuthenticated = true
                     req.session.user = existingUser
@@ -146,7 +148,6 @@ exports.login = (req, res) => {
 
 exports.getForgotPasswordView = (req, res) => {
     const messages = req.flash('error')
-    console.log(messages)
 
     res.render('auth/forgot-password', { 
         pageTitle: 'Forgot Password', 
@@ -172,7 +173,7 @@ exports.submitForgotPassword = (req, res) => {
     crypto.randomBytes(32, (error, buffer) => {
         if(error) {
             console.log(error)
-            return res.redirect('auth/forgot-password')
+            return res.redirect('/auth/forgot-password')
         }
 
         const token = buffer.toString('hex')
@@ -180,26 +181,109 @@ exports.submitForgotPassword = (req, res) => {
             .then(existingUser => {
                 if(!existingUser) {
                     req.flash('error', 'Email is not valid')
-                    return res.redirect('auth/forgot-password')
+                    return res.redirect('/auth/forgot-password')
                 }
-                console.log(Date.now)
+
                 existingUser.resetToken = token
-                existingUser.resetTokenExpiration = Date.now + (60 * 60 * 1000) // 1hr
-                return existingUser.save()
+                existingUser.resetTokenExpiration = Date.now() + (60 * 60 * 1000) // 1hr
+                existingUser.save()
+                    .then(updatedUser => {
+                        res.redirect('/')
+                        transporter.sendMail({
+                            to: updatedUser.email,
+                            from: process.env.EMAIL_FROM,
+                            subject: 'Password Reset',
+                            html: `
+                                <p>You requested a password reset</p>
+                                <p>Click this <a href="${req.protocol}:${req.get('host')}/auth/new-password/${token}">link</a> to set a new password.</p>
+                            `
+                        })
+                    })
+                    .catch(error => {
+                        console.log(error)
+                        const err = new Error(error)
+                        err.httpStatusCode = 500
+                        return next(err)
+                    })
             })
-            .then(updatedUser => {
-                transporter.sendMail({
-                    to: updatedUser.email,
-                    from: process.env.EMAIL_FROM,
-                    subject: 'Password Reset',
-                    html: `
-                        <p>You requested a password reset</p>
-                        <p>Click this <a href="http://localhost:3000/reset-password/${token}">link</a> to set a new password.</p>
-                    `
-                })
+            .catch(error => {
+                console.log(error)
+                const err = new Error(error)
+                err.httpStatusCode = 500
+                return next(err)
             })
-            .catch(error => condsol.log(error))
     })
+}
+
+exports.getNewPasswordView = (req, res) => {
+    const token = req.params.token
+    const messages = req.flash('error')
+
+    User.findOne({ resetToken: token, resetTokenExpiration: { $gt: Date.now() } })
+        .then(existingUser => {
+            if(!existingUser) {
+                req.flash('error', 'Token is either invalid or expired')
+                return res.redirect('/auth/new-password')
+            }
+
+            res.render('auth/new-password', { 
+                pageTitle: 'Reset Password', 
+                path: '/auth/new-password',
+                token: token,
+                userId: existingUser._id.toString(),
+                oldInput: { newPassword: '', confirmNewPassword: '' },
+                errorMessage: (messages.length <= 0) ? null : messages
+            });
+        })
+        .catch(error => {
+            console.log(error)
+            const err = new Error(error)
+            err.httpStatusCode = 500
+            return next(err)
+        })
+}
+
+exports.submitNewPassword = (req, res) => {
+    const { newPassword, confirmNewPassword, userId, token } = req.body;
+    const errors = validationResult(req)
+    if(!errors.isEmpty()) {
+        return res.status(422).render('auth/new-password', {
+            path: '/auth/new-password',
+            pageTitle: 'Reset Password',
+            errorMessage: errors.array()[0].msg,
+            oldInput: { newPassword, confirmNewPassword, userId, token }
+        })
+    }
+    let updatedUser
+
+    User.findOne({ _id: userId, resetToken: token, resetTokenExpiration: { $gt: Date.now() } })
+        .then(existingUser => {
+            if(!existingUser) {
+                req.flash('error', 'Email is not valid')
+                return res.redirect('auth/forgot-password')
+            }
+
+            updatedUser = existingUser
+
+            // Encrypt password
+            const salt = bcrypt.genSaltSync(12);
+            return bcrypt.hash(newPassword, salt)
+        })
+        .then(hashedPassword => {
+            updatedUser.password = hashedPassword
+            updatedUser.resetToken = undefined
+            updatedUser.resetTokenExpiration = undefined
+            return updatedUser.save()
+        })
+        .then(updatedUser => {
+            res.redirect('/auth/login')
+        })
+        .catch(error => {
+            console.log(error)
+            const err = new Error(error)
+            err.httpStatusCode = 500
+            return next(err)
+        })
 }
 
 exports.logout = (req, res) => {

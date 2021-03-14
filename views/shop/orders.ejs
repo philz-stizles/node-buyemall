@@ -1,0 +1,37 @@
+<%- include('../includes/head.ejs') %>
+        <link rel="stylesheet" href="/css/cart.css">
+    </head>
+    <body>
+        <%- include('../includes/header.ejs') %>
+        <main>
+            <div class="container">
+                <h2 class="my-5"><%= pageTitle %></h2>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <% if(orders.length > 0) { %>
+                            <% for(let item of orders) { %>
+                                <div class="card w-100 p-4">
+                                    <div class="card-body">
+                                        <h4>Order - # <%= item._id %> - <a href="/orders/<%= item._id %>" class="">Invoice</a></h4>
+                                        <ul class="list-group">
+                                            <% for(let product of item.products) { %>
+                                                <li class="list-group-item"><%= product.product.title %> (<%= product.quantity %>)</li>
+                                            <% } %>
+                                        </ul>
+                                    </div>
+                                </div>
+                            <% } %>
+                        <% } else { %>
+        
+        
+                        <% } %>
+        
+                        <hr />
+                        <a href="#" class="btn btn-outline-primary">Order Now!</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+<%- include('../includes/end') %>
+

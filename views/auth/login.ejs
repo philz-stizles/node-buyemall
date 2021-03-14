@@ -13,11 +13,29 @@
                     <% } %>
                     <div class="mb-3">
                         <label class="form-label" for="password">Email</label>
-                        <input autocomplete="off" value="<%= oldInput.email %>" class="form-control" id="email" type="email" name="email" placeholder="Email">
+                        <input 
+                            autocomplete="off" 
+                            value="<%= oldInput.email %>" 
+                            class="form-control<%= validationErrors.find(e => e.param === 'email') ? ' is-invalid' : '' %>" 
+                            id="email" type="email" name="email" placeholder="Email">
+                            <% if(validationErrors.find(e => e.param === 'email')) { %>
+                                <div id="validationServer03Feedback" class="invalid-feedback">
+                                    <%= validationErrors.find(e => e.param === 'email').msg %>
+                                </div>
+                            <% } %>
                     </div>
                     <div class="mb-3">
                         <label class="form-label" for="password">Password</label>
-                        <input value="<%= oldInput.password %>" class="form-control" id="password" type="password" name="password" placeholder="xxxxxxx">
+                        <input 
+                            value="<%= oldInput.password %>" 
+                            class="form-control <%= validationErrors.find(e => e.param === 'password') ? 'is-invalid' : '' %>" 
+                            id="password" 
+                            type="password" name="password" placeholder="xxxxxxx">
+                            <% if(validationErrors.find(e => e.param === 'password')) { %>
+                                <div id="validationServer03Feedback" class="invalid-feedback">
+                                    <%= validationErrors.find(e => e.param === 'password').msg %>
+                                </div>
+                            <% } %>
                     </div>
                     
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>" />

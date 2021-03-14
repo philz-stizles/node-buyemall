@@ -24,11 +24,18 @@
                         <input class="form-control" id="price" type="number" min="0" step="0.01" name="price" placeholder="Price"
                             value="<%= (product) ? (product.price) ? product.price : '' : ''%>">
                     </div>
-                    <div class="mb-3">
+                    <!-- <div class="mb-3">
                         <label class="form-label" for="imageURL">Image URL</label>
                         <input class="form-control" id="imageURL" type="text" name="imageURL" placeholder="Image URL"
                             value="<%= (product) ? (product.imageURL) ? product.imageURL : '' : ''%>">
+                    </div> -->
+
+                    <div class="mb-3">
+                        <label class="form-label" for="image">Image</label>
+                        <input class="form-control" id="image" type="file" name="image">
                     </div>
+                    
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                     <button class="btn btn-primary" type="submit">Add Product</button>
                 </form>
             </div>

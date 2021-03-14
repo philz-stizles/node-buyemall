@@ -17,10 +17,7 @@ const userSchema = new mongoose.Schema({
 
 userSchema.methods.addToCart = function(product) {
     const updatedCartItems = [...this.cart.items]
-    console.log()
     const existingProductIndex = updatedCartItems.findIndex(item => {
-        console.log(item.product, product._id)
-        console.log(typeof item.product, typeof product._id)
         return item.product.toString() === product._id.toString()
     })
 
@@ -39,10 +36,17 @@ userSchema.methods.addToCart = function(product) {
     return this.save()
 }
 
-userSchema.methods.removeFromCart = function(product) {
-    const updatedCartItems = this.cart.items.filter(item => item.product.toString() !== product._id.toString())
+userSchema.methods.removeFromCart = function(id) {
+    const updatedCartItems = this.cart.items.filter(item => item.product.toString() !== id.toString())
 
     this.cart.items = updatedCartItems
+
+    return this.save()
+}
+
+userSchema.methods.clearCart = function() {
+
+    this.cart = { items: [] }
 
     return this.save()
 }

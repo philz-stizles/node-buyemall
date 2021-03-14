@@ -10,20 +10,16 @@ router.route('/create-product')
     .get(authenticate, adminControllers.getCreateProductView)
     .post([
         check('title')
-            .isAlphanumeric()
-            .isLength({ min: 3 })
-            .withMessage('Please enter a valid title')
-            .trim(),
-        check('imageURL')
-            .isURL()
-            .withMessage('Please enter a valid URL'),
+            .trim()
+            .not().isEmpty().withMessage('Title is required')
+            .isString().withMessage('Enter a valid title')
+            .isLength({ min: 3 }).withMessage('Title must not be less then 3 characters'),
         check('price')
             .isFloat()
-            .withMessage('Please enter a price'),
+            .withMessage('Please enter a valid price'),
         check('description')
-            .isLength({ min: 5, max: 200 })
-            .withMessage('Please enter a valid description')
-            .trim(),
+            .trim()
+            .isLength({ min: 5, max: 200 }).withMessage('Description should be greater than 5 characters but less then 200')
     ], authenticate, adminControllers.createProduct)
 
 router.route('/products')
@@ -35,22 +31,19 @@ router.route('/update-product/:id')
     .get(authenticate, adminControllers.getProductUpdateView)
     .post([
         check('title')
-            .isAlphanumeric()
-            .isLength({ min: 3 })
-            .withMessage('Please enter a valid title')
-            .trim(),
-        check('imageURL')
-            .isURL()
-            .withMessage('Please enter a valid URL'),
+        .trim()
+        .not().isEmpty().withMessage('Title is required')
+        .isString().withMessage('Enter a valid title')
+        .isLength({ min: 3 }).withMessage('Title must not be less then 3 characters'),
         check('price')
             .isFloat()
-            .withMessage('Please enter a price'),
+            .withMessage('Please enter a valid price'),
         check('description')
-            .isLength({ min: 5, max: 200 })
-            .withMessage('Please enter a valid description')
-            .trim(),
+            .trim()
+            .isLength({ min: 5, max: 200 }).withMessage('Description should be greater than 5 characters but less then 200')
     ], authenticate, adminControllers.updateProduct)
 
-router.post('/delete-product/:id', authenticate, adminControllers.deleteProduct)
+// router.post('/delete-product/:id', authenticate, adminControllers.deleteProduct)
+router.delete('/products/:id', authenticate, adminControllers.deleteProductAPI)
 
 module.exports = router;
