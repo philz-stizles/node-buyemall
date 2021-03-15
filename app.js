@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const multer = require('multer');
-const mongoose = require('mongoose');
+const mongoConnect = require('./db');
 const expressSession = require('express-session');
 const MongoDbStore = require('connect-mongodb-session')(expressSession);
 const csrf = require('csurf');
@@ -135,21 +135,13 @@ app.use((error, req, res, next) => {
 });
 
 // Initialize DB & start Server
-mongoose.connect(process.env.MONGODB_LOCAL_URI, {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useFindAndModify: false,
-    useUnifiedTopology: true
+mongoConnect((client) => {
+    console.log(client);
+    const PORT = process.env.PORT
+    app.listen(PORT, (err) => {
+        if(err) {
+            console.log(`Could not start server ${err.message}`);
+        }
+        console.log(`Buy em'all Server running on PORT ${PORT}`);
+    });   
 })
-    .then(() => {
-        console.log('DB connected');
-
-        const PORT = process.env.PORT
-        app.listen(PORT, (err) => {
-            if(err) {
-                console.log(`Could not start server ${err.message}`);
-            }
-            console.log(`Buy em'all Server running on PORT ${PORT}`);
-        });   
-    })
-    .catch(error => console.log(error))
