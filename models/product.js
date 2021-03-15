@@ -1,11 +1,18 @@
-const mongoose = require('mongoose')
+const { getdb } = require('../db')
 
-const ProductSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    price: { type: Number, required: true },
-    description: { type: String, required: true },
-    imageURL: { type: String, required: true },
-    creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-}, { timestamps: true })
+class Product {
+    constructor(obj) {
+        this.title = obj.title;
+        this.price = obj.price;
+        this.description = obj.description;
+        this.imageURL = obj.imageURL;
+        this.creator = obj.creator;
+    }
 
-module.exports = Product = mongoose.model('Product', ProductSchema)
+    save() {
+        const db = getdb()
+        db.collection('products').insertOne(this)
+    }
+}
+
+module.exports = Product

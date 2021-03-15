@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const multer = require('multer');
-const mongoConnect = require('./db');
+const { mongoConnect } = require('./db');
 const expressSession = require('express-session');
 const MongoDbStore = require('connect-mongodb-session')(expressSession);
 const csrf = require('csurf');
@@ -143,5 +143,6 @@ mongoConnect((client) => {
             console.log(`Could not start server ${err.message}`);
         }
         console.log(`Buy em'all Server running on PORT ${PORT}`);
+        console.log(`Client available @ ${PORT}`);
     });   
 })

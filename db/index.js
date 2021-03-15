@@ -1,14 +1,25 @@
-const mongodb = require('mongodb')
-const MonogoClient = mongodb.MongoClient
+const mongodb = require('mongodb');
+const MonogoClient = mongodb.MongoClient;
 
+let _db;
 
-const mongoConnect = cb => {
+exports.mongoConnect = cb => {
     MonogoClient.connect(process.env.MONGODB_LOCAL_URI)
         .then(client => {
-            console.log('DB Connected')
-            cb(client)
+            _db = client.db();
+            console.log('DB Connected');
+            cb(client);
         })
-        .catch(error => console.log(error))
+        .catch(error => {
+            console.log(error);
+            throw(error);
+        });
 }
 
-module.exports = mongoConnect
+exports.getdb = () => {
+    if(_db){
+        return _db;
+    }
+
+    throw 'No Database found';
+}
