@@ -14,7 +14,14 @@ exports.createProduct = (req, res) => {
         .then((result) => {
             return res.status(201).send({ status: false, data: result, message: 'Created' })
         })
-        .catch(error => console.log(error))
+        .catch(error => {
+            console.log(error)
+            if(!error.statusCode) {
+                error.statusCode = 500
+            }
+
+            next(error)
+        })
 }
 
 exports.getProduct = (req, res) => {

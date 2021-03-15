@@ -1,6 +1,6 @@
 const express = require('express');
 const { body } = require('express-validator')
-const { createProduct, getAllProducts, getProduct, updateProduct, deleteProduct } = require('../controllers/product-controllers');
+const { createProduct, getAllProducts, getProduct, updateProduct, deleteProduct } = require('../controllers/productControllers');
 
 const router = express.Router();
 
