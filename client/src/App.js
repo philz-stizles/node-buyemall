@@ -39,42 +39,31 @@ class App extends Component{
     e.preventDefault()
     this.setState({ authLoading: true })
 
-    const graphqlQuery = {
-      query: `
-        query {
-          login(credentials: { email: "${email}", password: "${password}" }) {
-            userId
-            token
-          }
-        }
-      `
-    }
-
-    fetch('http://localhost:5000/graphql', { 
+    fetch('http://localhost:5000/api/v1/auth/login', { 
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(graphqlQuery)
+      body: JSON.stringify({ email, password })
     })
       .then(response => response.json())
-      .then(responseData => {
-        console.log(responseData)
-        if(responseData.errors) {
-          
+      .then(data => {
+        console.log(data)
+        if(data.status === true) {
+          // Set state
+          const token = data.data.token
+          const userId = data.data.loggedInUser.userId
+          this.setState({ 
+            isAuthenticated: true, 
+            authLoading: false,
+            token,
+            userId
+          })
+
+          // Store credentials in localstorage
+          const userCredentials = { token, userId }
+          localStorage.setItem('Buyemall', JSON.stringify(userCredentials))
+        } else {
+          this.setState({ isAuthenticated: false, authLoading: false })
         }
-
-        // Set state
-        const token = responseData.data.login.token
-        const userId = responseData.data.login.userId
-        this.setState({ 
-          isAuthenticated: true, 
-          authLoading: false,
-          token,
-          userId
-        })
-
-        // Store credentials in localstorage
-        const userCredentials = { token, userId }
-        localStorage.setItem('Buyemall', JSON.stringify(userCredentials))
       })
       .catch(error => {
         console.log(error)
@@ -82,36 +71,31 @@ class App extends Component{
       })
   }
 
-  handleSignup = (e, { signupForm }) => {
-    const { username, email, password } = signupForm
+  handleSignup = (e, signupForm) => {
     e.preventDefault()
+    console.log(signupForm)
+    const { username, email, password } = signupForm
+    
     this.setState({ authLoading: true })
 
-    const graphqlQuery = {
-      query: `
-        mutation {
-          createUser(user: { username: "${username.value}", email: "${email.value}", password: "${password.value}" }) {
-            _id
-            email
-          }
-        }
-      `
-    }
-
-    fetch('http://localhost:5000/graphql', { 
+    fetch('http://localhost:5000/api/v1/auth/signup', { 
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(graphqlQuery)
+      body: JSON.stringify({
+        username: username.value,
+        email: email.value,
+        password: password.value
+      })
     })
       .then(response => response.json())
       .then(data => {
         console.log(data)
-        if(data.errors) {
-          
+        if(data.status === true) {
+          this.setState({ isAuthenticated: false, authLoading: false })
+          this.props.history.replace('/')
+        } else {
+          this.setState({ isAuthenticated: false, authLoading: false })
         }
-
-        this.setState({ isAuthenticated: false, authLoading: false })
-        this.props.history.replace('/')
       })
       .catch(error => {
         console.log(error)

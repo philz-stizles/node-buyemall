@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Button from '../../Button/Button';
+import Button from '../../../components/Button/Button';
 import './PostItem.css';
 
 const PostItem = ({ post: { _id, title, content, imageUrl, creator, createdAt }, onDelete, onStartEdit }) => (

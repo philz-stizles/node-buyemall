@@ -70,11 +70,12 @@ class Signup extends Component {
 
     render() {
         const { loading, onSignup } = this.props
-        const { username, email, password } = this.state.signupForm
+        const { signupForm } = this.state
+        const { username, email, password } = signupForm
 
         return (
             <AuthWrapper>
-                <form onSubmit={e => onSignup(e, this.state)}>
+                <form onSubmit={e => onSignup(e, signupForm)}>
                     <Input
                         id="email"
                         label="Your E-Mail"

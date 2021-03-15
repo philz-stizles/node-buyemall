@@ -1,11 +1,12 @@
 import React, { Component, Fragment } from 'react'
-import PostEdit from '../../components/Feed/PostEdit/PostEdit'
-import PostItem from '../../components/Feed/PostItem/PostItem'
+import PostEdit from './PostEdit/PostEdit'
+import PostItem from './PostItem/PostItem'
 import Loader from '../../components/Loader/Loader'
 import Paginator from '../../components/Paginator/Paginator'
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import './Posts.css'
+import { Redirect } from 'react-router'
 
 class Posts extends Component {
     state = {
@@ -15,50 +16,35 @@ class Posts extends Component {
             currentPage: 1
         },
         currentPage: 1,
-        postsLoading: true
+        postsLoading: true,
+        error: null,
+        isEditing: false,
+        editPost: false,
+        editLoading: false
     }
 
     componentDidMount() {
-        const graphqlQuery = {
-            query: `
-                query {
-                    posts {
-                        posts {
-                            _id
-                            title
-                            content
-                            createdAt
-                            creator {
-                                username
-                            }
-                            imageUrl
-                        }
-                        count
-                    }
-                }
-            `
-        }
-
-        fetch('http://localhost:8009/api/v1/posts', { 
+        fetch('http://localhost:5000/api/v1/posts', { 
             method: 'GET',
             headers: { 
                 'Content-Type': 'application/json',
-                // 'Authorization': `Bearer ${this.props.userCredentials.token}`
+                'Authorization': `Bearer ${this.props.userCredentials.token}`
             }
         })
             .then(response => response.json())
             .then(responseData => {
                 console.log(responseData)
-                if(responseData.errors) {
-                    
+                if(responseData.status === true) {
+                  const { posts, count } = responseData.data
+                  this.setState({ posts: { items: posts, count  }, postsLoading: false })
+                } else {
+                  this.setState({ postsLoading: false, error: responseData.message })
                 }
                 
-                const { posts, count } = responseData.data
-                this.setState({ posts: { items: posts, count  }, postsLoading: false })
             })
             .catch(error => {
                 console.log(error)
-                this.setState({ postsLoading: false })
+                this.setState({ postsLoading: false, error: error })
             })
     }
 
@@ -127,56 +113,49 @@ class Posts extends Component {
       };
     
       finishEditHandler = postData => {
-        this.setState({
-          editLoading: true
-        });
+        console.log(postData)
+        const formData = new FormData()
+        formData.append('title', postData.title)
+        formData.append('content', postData.content)
+        formData.append('image', postData.image)
+  
+        this.setState({ editLoading: true });
         // Set up data (with image!)
-        let url = 'URL';
-        if (this.state.editPost) {
-          url = 'URL';
-        }
-    
-        fetch(url)
-          .then(res => {
-            if (res.status !== 200 && res.status !== 201) {
-              throw new Error('Creating or editing a post failed!');
+        fetch('http://localhost:5000/api/v1/posts', {
+          method: (this.state.editPost) ? 'PUT' : 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.props.userCredentials.token}`
+          },
+          body: formData
+        })
+          .then(response => response.json())
+          .then(responseData => {
+            if(responseData.status === true) {
+              const { _id, title, content, creator, createdAt } = responseData.data;
+              const post = { _id, title, content, creator, createdAt };
+
+              this.setState(prevState => {
+                const { posts, editPost } = prevState
+                const { items } = posts
+                let updatedItems = [...items];
+                if (editPost) {
+                  const postIndex = items.findIndex(p => p._id === editPost._id);
+                  updatedItems[postIndex] = post;
+                // } else if (posts.length < 2) {
+                } else {
+                  updatedItems = items.concat(post);
+                }
+                
+                return { posts: { ...posts, items: updatedItems, count: updatedItems.length }, isEditing: false, editPost: null, editLoading: false };
+              });
+            } else {
+              this.setState({ isEditing: false, editPost: null, editLoading: false, error: responseData.message });
             }
-            return res.json();
-          })
-          .then(resData => {
-            const post = {
-              _id: resData.post._id,
-              title: resData.post.title,
-              content: resData.post.content,
-              creator: resData.post.creator,
-              createdAt: resData.post.createdAt
-            };
-            this.setState(prevState => {
-              let updatedPosts = [...prevState.posts];
-              if (prevState.editPost) {
-                const postIndex = prevState.posts.findIndex(
-                  p => p._id === prevState.editPost._id
-                );
-                updatedPosts[postIndex] = post;
-              } else if (prevState.posts.length < 2) {
-                updatedPosts = prevState.posts.concat(post);
-              }
-              return {
-                posts: updatedPosts,
-                isEditing: false,
-                editPost: null,
-                editLoading: false
-              };
-            });
+            
           })
           .catch(err => {
             console.log(err);
-            this.setState({
-              isEditing: false,
-              editPost: null,
-              editLoading: false,
-              error: err
-            });
+            this.setState({ isEditing: false, editPost: null, editLoading: false, error: err });
           });
       };
     
@@ -215,35 +194,31 @@ class Posts extends Component {
       };
 
     render() {
-        const { postsLoading, posts, currentPage } = this.state
+        const { postsLoading, posts, currentPage, error, isEditing, editLoading, editPost } = this.state
+
+        if(error) {
+          return <h1>An error occured</h1>
+        }
+
         return (
             <Fragment>
-                <PostEdit
-                  editing={this.state.isEditing}
-                  selectedPost={this.state.editPost}
-                  loading={this.state.editLoading}
+                <PostEdit editing={isEditing} selectedPost={editPost} loading={editLoading}
                   onCancelEdit={this.cancelEditHandler}
                   onFinishEdit={this.finishEditHandler}/>
                   
-            <section className="feed__status">
-              <form onSubmit={this.statusUpdateHandler}>
-                <Input
-                  type="text"
-                  placeholder="Your status"
-                  control="input"
-                  onChange={this.statusInputChangeHandler}
-                  value={this.state.status}
-                />
-                <Button mode="flat" type="submit">
-                  Update
-                </Button>
-              </form>
-            </section>
-            <section className="feed__control">
-              <Button mode="raised" design="accent" onClick={this.newPostHandler}>
-                New Post
-              </Button>
-            </section>
+                <section className="feed__status">
+                  <form onSubmit={this.statusUpdateHandler}>
+                    <Input type="text" placeholder="Your status" control="input" 
+                      onChange={this.statusInputChangeHandler}
+                      value={this.state.status}/>
+                    <Button mode="flat" type="submit">Update</Button>
+                  </form>
+                </section>
+
+                <section className="feed__control">
+                  <Button mode="raised" design="accent" onClick={this.newPostHandler}>New Post</Button>
+                </section>
+
                 <section className="feed">
                     {postsLoading && <div style={{ textAlign: 'center', marginTop: '2rem' }}><Loader /></div>}
                     {posts.items.length <= 0 && !postsLoading ? (<p style={{ textAlign: 'center' }}>No posts found.</p>) : null}

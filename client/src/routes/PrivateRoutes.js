@@ -1,7 +1,7 @@
 import React from 'react'
 import { Switch, Route, Redirect } from 'react-router-dom'
 import PostPage from '../pages/Feed/Posts'
-import FeedDetailPage from '../pages/Feed/FeedDetail/FeedDetail'
+import FeedDetailPage from '../pages/Feed/PostDetail/PostDetail'
 
 const PrivateRoutes = ({userId, token}) => {
     return (
