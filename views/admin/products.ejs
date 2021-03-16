@@ -10,20 +10,21 @@
                 <% if(products.length > 0) { %>
                     <div class="row row-cols-1 row-cols-md-3 g-4">
                         <% for(let item of products) { %>
+                            <%  const { _id: id, title, description, price, imageURL } = item %>
                             <div class="col">
                                 <div class="card" style="width: 18rem; height: auto;">
-                                    <img class="card-img-top" style="height: 15rem; object-fit:cover" src="/<%= item.imageURL %>" alt="...">
+                                    <img class="card-img-top" style="height: 15rem; object-fit:cover" src="/<%= imageURL %>" alt="...">
                                     <div class="card-body">
-                                        <h5 class="card-title"><%= item.title %></h5>
-                                        <p class="card-text"><%= item.description %></p>
-                                        <p class="text-muted lead">$<%= item.price %></p>
-                                        <a class="btn btn-primary" href="/admin/update-product/<%= item.id %>">Edit</a>
+                                        <h5 class="card-title"><%= title %></h5>
+                                        <p class="card-text"><%= description %></p>
+                                        <p class="text-muted lead">$<%= price %></p>
+                                        <a class="btn btn-primary" href="/admin/update-product/<%= id %>">Edit</a>
                                         <!-- <form style="display: inline-block;" action="/admin/delete-product/<%= item.id %>" method="POST"> -->
                                             <!-- <input type="hidden" name="_csrf" value="<%= csrfToken %>" /> -->
                                             <!-- <button type="submit" class="btn btn-danger">Delete</button> -->
                                         <!-- </form> -->
                                         <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                                        <input type="hidden" name="productId" value="<%= item.id %>" />
+                                        <input type="hidden" name="productId" value="<%= id %>" />
                                         <button id="deleteProduct" onclick="deleteProduct(this)" type="button" class="btn btn-danger">Delete</button>
                                     </div>
                                 </div>

@@ -16,7 +16,7 @@
                                         <h4>Order - # <%= item._id %> - <a href="/orders/<%= item._id %>" class="">Invoice</a></h4>
                                         <ul class="list-group">
                                             <% for(let product of item.products) { %>
-                                                <li class="list-group-item"><%= product.product.title %> (<%= product.quantity %>)</li>
+                                                <li class="list-group-item"><%= product.title %> (<%= product.quantity %>)</li>
                                             <% } %>
                                         </ul>
                                     </div>

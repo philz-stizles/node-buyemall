@@ -30,7 +30,7 @@
                         <li class="nav-item">
                             <form action="/auth/logout" method="POST">
                                 <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                                <button type="submit" class="<%= (path == '/orders') ? 'active ' : '' %>nav-link">Logout</button>
+                                <button type="submit" class="nav-link">Logout</button>
                             </form>
                         </li>
                     <% } else { %>

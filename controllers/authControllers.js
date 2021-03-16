@@ -22,7 +22,7 @@ exports.getSignupView = (req, res) => {
     });
 }
 
-exports.signup = (req, res) => {
+exports.signup = (req, res, next) => {
     const { username, email, password } = req.body;
     var errors = validationResult(req)
     if(!errors.isEmpty()) {
@@ -34,9 +34,9 @@ exports.signup = (req, res) => {
         })
     }
 
-    User.findOne({ email })
+    User.getByEmail(email)
         .then(user => {
-            // Check that existing user does not exist
+            // Check that proposed user does not already exist
             if(user) {
                 req.flash('error', 'User with email already exists')
                 return res.redirect('/auth/signup')
@@ -52,13 +52,16 @@ exports.signup = (req, res) => {
                 })
                 .then(newUser => {
                     transporter.sendMail({
-                        to: newUser.email,
+                        to: email,
                         from: process.env.EMAIL_FROM,
                         subject: 'Signup succeeded',
                         html: `<h1>You successfully signed up!</h1>`
                     }, (error) => {
                         if (error) {
-                            console.log(error);
+                            console.log(error)
+                            const err = new Error(error)
+                            err.httpStatusCode = 500
+                            return next(err)
                         } else {
                             res.redirect('/auth/login')
                         }
@@ -101,8 +104,9 @@ exports.login = (req, res) => {
         })
     }
 
-    User.findOne({ email })
+    User.getByEmail(email)
         .then(existingUser => {
+            console.log(existingUser)
             if(!existingUser) {
                 return res.status(422).render('auth/login', {
                     path: '/auth/login',
@@ -113,7 +117,7 @@ exports.login = (req, res) => {
                 })
             }
 
-            bcrypt
+            return bcrypt
                 .compare(password, existingUser.password)
                 .then(isMatch => {
                     if(!isMatch) {
@@ -130,7 +134,7 @@ exports.login = (req, res) => {
                     req.session.isAuthenticated = true
                     req.session.user = existingUser
                     req.session.save(error => {
-                        // console.log(error)
+                        console.log(error)
                         return res.redirect('/')
                     })
                 })
@@ -287,6 +291,7 @@ exports.submitNewPassword = (req, res) => {
 }
 
 exports.logout = (req, res) => {
+    console.log('logout')
     req.session.destroy(error => {
         if(error) {
             console.log(error)

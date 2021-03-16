@@ -4,7 +4,8 @@ const MonogoClient = mongodb.MongoClient;
 let _db;
 
 exports.mongoConnect = cb => {
-    MonogoClient.connect(process.env.MONGODB_LOCAL_URI)
+    console.log()
+    MonogoClient.connect(process.env.MONGODB_CLOUD_URI)
         .then(client => {
             _db = client.db();
             console.log('DB Connected');

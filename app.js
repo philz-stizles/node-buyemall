@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -8,16 +9,30 @@ const expressSession = require('express-session');
 const MongoDbStore = require('connect-mongodb-session')(expressSession);
 const csrf = require('csurf');
 const flash = require('connect-flash');
+const helmet = require('helmet');
+const compression = require('compression');
+const morgan = require('morgan');
 const errorControllers = require('./controllers/errorControllers');
+const User = require('./models/user')
 
 const app = express();
 
 // SESSION STORE
 // Store sessions in mongodb
 const sessionStore = new MongoDbStore({
-    uri: process.env.MONGODB_LOCAL_URI,
+    uri: process.env.MONGODB_CLOUD_URI,
     collection: 'sessions'
 })
+
+// SECURITY HEADERS
+app.use(helmet());
+
+// COMPRESSION
+app.use(compression());
+
+// LOGGING
+const accessLogStream = fs.createWriteStream(path.join(__dirname, 'logs', 'access.log'), { flags: 'a' })
+app.use(morgan('combined', { stream: accessLogStream }));
 
 // CSRF PROTECTION - INITIALIZE
 const csrfProtection = csrf();
@@ -42,7 +57,7 @@ app.use(bodyParser.json());
 // PARSE FILE(S) from form - multipart/form-data
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
-        cb(null, 'uploads/')
+        cb(null, 'uploads')
     },
     filename: function(req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
@@ -101,12 +116,13 @@ app.use((req, res, next) => {
         return next()
     }
 
-    User.findById(req.session.user._id)
+    User.getById(req.session.user._id)
         .then(user => {
             if(!user) {
                 return next()
             }
-            req.user = user
+
+            req.user = new User(user)
             next()
         })
         .catch(error => {
@@ -129,6 +145,7 @@ app.get('/500', errorControllers.send500);
 app.use(errorControllers.send404);
 
 app.use((error, req, res, next) => {
+    console.log(error)
     // res.status(error.httpStatusCode).send(error.message);
     // res.redirect('/500')
     res.status(500).render('500', { pageTitle: 'Error!', path: '/500', isAuthenticated: req.session.isAuthenticated })
@@ -136,13 +153,12 @@ app.use((error, req, res, next) => {
 
 // Initialize DB & start Server
 mongoConnect((client) => {
-    console.log(client);
     const PORT = process.env.PORT
     app.listen(PORT, (err) => {
         if(err) {
             console.log(`Could not start server ${err.message}`);
         }
         console.log(`Buy em'all Server running on PORT ${PORT}`);
-        console.log(`Client available @ ${PORT}`);
+        console.log(`Client available @ http://localhost/${PORT}`);
     });   
 })

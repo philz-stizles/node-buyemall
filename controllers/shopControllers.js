@@ -1,7 +1,8 @@
 const fs = require('fs')
 const path = require('path')
 const PDFDocument = require('pdfkit')
-const order = require('../models/order')
+const mongodb = require('mongodb')
+const Order = require('../models/order')
 const Product = require('../models/product')
 
 exports.getIndexView = (req, res, next) => {
@@ -10,20 +11,14 @@ exports.getIndexView = (req, res, next) => {
     const skip = (page - 1) * limit
     let totalCount = 0
 
-    Product.countDocuments()
-        .then(count => {
-            totalCount = count 
-            return Product.find()
-                .skip(skip)
-                .limit(limit)
-        })
+    Product.getAll()
         .then(products=> {
             res.render('shop/', { 
                 pageTitle: 'Shop', 
                 products, 
                 path: '/',
                 pagination: {
-                    currentPage:page,
+                    currentPage: page,
                     totalCount,
                     hasProducts: products.length > 0,
                     hasPreviousPage: page > 1,
@@ -43,7 +38,7 @@ exports.getIndexView = (req, res, next) => {
 }
 
 exports.getProductsView = (req, res, next) => {
-    Product.find()
+    Product.getAll()
         .then(products => {
             res.render('shop/product-list', { 
                 pageTitle: 'Shop', 
@@ -62,7 +57,7 @@ exports.getProductsView = (req, res, next) => {
 }
 
 exports.getProductDetailView = (req, res, next) => {
-    Product.findById(req.params.id)
+    Product.getById(req.params.id)
         .then(product => {
             res.render('shop/product-details', { 
                 pageTitle: 'Product Details', 
@@ -80,7 +75,7 @@ exports.getProductDetailView = (req, res, next) => {
 }
 
 exports.addToCart = (req, res) => {
-    Product.findById(req.params.id)
+    Product.getById(req.params.id)
         .then(product => {
             return req.user.addToCart(product)
         })
@@ -101,19 +96,15 @@ exports.removeFromCart = (req, res) => {
 }
 
 exports.getCartView = (req, res) => {
-    req.user
-        .populate('cart.items.product')
-        .execPopulate()
-        .then(user => {
+    req.user.getCartItems()
+        .then(products => {
             res.render('shop/cart', { 
                 pageTitle: 'Your Cart',  
                 path: '/cart',
-                products: user.cart.items,
+                products
             });
         })
-        .catch(error => {
-            console.log(error)
-        })
+        .catch(error => console.log(error))
 }
 
 exports.getCheckoutView = (req, res) => {
@@ -124,7 +115,7 @@ exports.getCheckoutView = (req, res) => {
 }
 
 exports.getOrdersView = (req, res, next) => {
-    Order.find({ 'user.userId': req.user._id})
+    req.user.getOrders()
         .then(orders => {
             console.log(orders)
             res.render('shop/orders', { 
@@ -142,27 +133,7 @@ exports.getOrdersView = (req, res, next) => {
 }
 
 exports.createOrder = (req, res, next) => {
-    req.user
-        .populate('cart.items.product')
-        .execPopulate()
-        .then(user => {
-            const products = user.cart.items.map(item => { 
-                return { quantity: item.quantity, product: { ...item.product._doc } }
-            })
-            const newOrder = new Order({
-                products,
-                user: {
-                    name: user.username,
-                    userId: user
-                }
-            })
-
-            return newOrder.save()
-        })
-        .then(result => {
-            console.log(result)
-            return req.user.clearCart()
-        })
+    req.user.createOrder()
         .then(() => {
             res.redirect('/orders')
         })

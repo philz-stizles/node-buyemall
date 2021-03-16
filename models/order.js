@@ -1,16 +1,59 @@
-const mongoose = require('mongoose')
+const { getdb } = require('../db')
+const mongodb = require('mongodb')
 
-const OrderSchema = new mongoose.Schema({
-    products: [ 
-        { 
-            product: { type: Object, required: true },
-            quantity: { type: Number, required: true }
-        }
-    ],
-    user: {
-        email: { type: String, required: true },
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+class Order {
+    constructor(obj, id) {
+        this._id = (id) ? mongodb.ObjectId(id) : null
+        this.products = obj.products;
+        this.user = obj.user;
     }
-}, { timestamps: true })
 
-module.exports = Order = mongoose.model('Order', OrderSchema)
+    static getAll(filter) {
+        const db = getdb()
+        return db.collection('orders')
+            .find(filter)
+            .toArray()
+            .then(orders => orders)
+            .catch(error => {
+                console.log(error)
+            })
+    }
+
+    static getById(id) {
+        const db = getdb()
+        return db.collection('orders') 
+            .find({ _id: new mongodb.ObjectId(id) })
+            .next()
+            .then(order => {
+                console.log(order);
+                return order
+            })
+            .catch(error => {
+                console.log(error)
+            })
+    }
+
+    static getMany(filter) {
+        if(filter.id) {
+            filter.id = new mongodb.ObjectId(filter.id)
+        }
+
+        if(filter._id) {
+            filter._id = new mongodb.ObjectId(filter._id)
+        }
+        console.log(filter)
+        const db = getdb()
+        return db.collection('orders') 
+            .find(filter)
+            .toArray()
+            .then(orders => {
+                console.log(orders);
+                return orders
+            })
+            .catch(error => {
+                console.log(error)
+            })
+    }
+}
+
+module.exports = Order

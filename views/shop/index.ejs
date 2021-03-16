@@ -11,17 +11,18 @@
                 <% if(products.length > 0) { %>
                     <div class="row row-cols-1 row-cols-md-3 g-4">
                         <% for(let item of products) { %>
+                            <%  const { _id: id, title, description, price, imageURL } = item %>
                             <div class="col">
                                 <div class="card" style="width: 18rem; height: auto;">
-                                    <img class="card-img-top" style="height: 15rem; object-fit:cover" src="https://cdn.pixabay.com/photo/2016/12/10/21/26/food-1898194_960_720.jpg" alt="...">
+                                    <img class="card-img-top" style="height: 15rem; object-fit:cover" src="<%= imageURL %>" alt="...">
                                     <div class="card-body">
-                                        <h5 class="card-title"><%= item.title %></h5>
-                                        <p class="card-text"><%= item.description %></p>
-                                        <p class="text-muted lead">$<%= item.price %></p>
-                                        <a class="btn btn-primary" href="/product-details/<%= item.id%>">Details</a>
-                                        <form action="/add-to-cart/<%= item._id%>" method="POST" style="display: inline-block;">
+                                        <h5 class="card-title"><%= title %></h5>
+                                        <p class="card-text"><%= description %></p>
+                                        <p class="text-muted lead">$<%= price %></p>
+                                        <a class="btn btn-primary" href="/product-details/<%= id%>">Details</a>
+                                        <form action="/add-to-cart/<%= id%>" method="POST" style="display: inline-block;">
                                             <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                                            <button type="submit" class="btn btn-primary" href="#">Add to Cart</button>
+                                            <button type="submit" class="btn btn-primary">Add to Cart</button>
                                         </form>
                                     </div>
                                 </div>
