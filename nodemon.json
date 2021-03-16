@@ -1,0 +1,28 @@
+{
+    "env": {
+        "NODE_ENV": "development",
+        "PORT": 5000,
+        "MONGODB_CLOUD_URI": "",
+        "MONGODB_LOCAL_URI": "mongodb://localhost:27017/buyemallDevDb",
+        "DATABASE_PASSWORD": "zVSPo8jbiJCM6TbX",
+        "DB_LOCAL_HOST": "",
+        "DB_NAME": "buyemallDevDb",
+        "DB_USERNAME": "",
+        "DB_PASSWORD": "",
+        "SESSION_SECRET": "JHLDMYUTONZXSWQQPOBMNXTIOO",
+        "JWT_AUTH_SECRET": "QWEOUPLMCNAASWEQQMNLP",
+        "JWT_AUTH_EXPIRESIN": "1h",
+        "JWT_AUTH_COOKIE_EXPIRESIN": 1,
+        "JWT_RESET_PASSWORD_SECRET": "AJFKHLRZXCNBMBFJZXCBBMMASMNJ",
+        "JWT_RESET_PASSWORD_EXPIRESIN": "5h",
+        "EMAIL_USERNAME": "6f7354b530fcbf",
+        "EMAIL_PASSWORD": "e2c50401ba0750",
+        "EMAIL_HOST": "smtp.mailtrap.io",
+        "EMAIL_PORT": 2525,
+        "EMAIL_FROM": "Theophilus Ighalo <hello@devdezyn.io>",
+        "MAILCHIMP_API_KEY": "kdsqlm8vdCrYSZdXCkFu8A",
+        "SENDGRID_API_KEY": "kdsqlm8vdCrYSZdXCkFu8A",
+        "FILE_MAX_SIZE": 10000,
+        "FILE_ALLOWED_TYPES": ["image/jpeg", "image/png", "image/svg", "image/jpg"]
+    }
+}
