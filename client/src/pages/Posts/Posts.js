@@ -173,7 +173,7 @@ class Posts extends Component {
     
       deletePostHandler = postId => {
         this.setState({ postsLoading: true });
-        fetch(`http://localhost/api/v1/posts/${}`, {
+        fetch(`http://localhost/api/v1/posts/${postId}`, {
           method: 'DELETE'
         })
           .then(res => res.json())
@@ -181,8 +181,11 @@ class Posts extends Component {
             console.log(responseData);
             if(responseData.status === true) {
               this.setState(prevState => {
-                const updatedPosts = prevState.posts.filter(p => p._id !== postId);
-                return { posts: updatedPosts, postsLoading: false };
+                const updatedPosts = prevState.posts.items.filter(p => p._id !== postId);
+                return { posts: { 
+                  ...prevState.posts,
+                  items:  updatedPosts
+                }, postsLoading: false };
               });
             } else {
               this.setState({ postsLoading: false, error: responseData.message });
