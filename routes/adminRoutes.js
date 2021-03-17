@@ -30,14 +30,12 @@ router.get('/product-detail/:id', adminControllers.getProductDetailView)
 router.route('/update-product/:id')
     .get(authenticate, adminControllers.getProductUpdateView)
     .post([
-        check('title')
-        .trim()
-        .not().isEmpty().withMessage('Title is required')
-        .isString().withMessage('Enter a valid title')
-        .isLength({ min: 3 }).withMessage('Title must not be less then 3 characters'),
+        check('title').trim()
+            .not().isEmpty().withMessage('Title is required')
+            .isString().withMessage('Enter a valid title')
+            .isLength({ min: 3 }).withMessage('Title must not be less then 3 characters'),
         check('price')
-            .isFloat()
-            .withMessage('Please enter a valid price'),
+            .isFloat().withMessage('Please enter a valid price'),
         check('description')
             .trim()
             .isLength({ min: 5, max: 200 }).withMessage('Description should be greater than 5 characters but less then 200')

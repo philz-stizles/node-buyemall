@@ -8,7 +8,8 @@ router.route('/signup')
     .get(authControllers.getSignupView)
     .post([
         check('username').not().isEmpty().withMessage('Username is required'),
-        check('email').isEmail().withMessage('Email is required').normalizeEmail(),
+        check('email').isEmail().withMessage('Email is required'),  //.normalizeEmail(),  // Beware, 
+        // normalize will remove some characters in an email
         body('password', 'Password must be greater than 6, and contain numbers and letters')
             .isLength({ min: 6 })
             .isAlphanumeric()

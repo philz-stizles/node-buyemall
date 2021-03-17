@@ -1,9 +1,15 @@
 const fs = require('fs')
 
 exports.deletFile = (filePath) => {
-    fs.unlink(filePath, error => {
-        if(error) {
-            throw(error)
-        }
-    })
+    if (fs.existsSync(filePath)) {
+        //file exists
+        return fs.unlink(filePath, error => {
+            if(error) {
+                throw(error)
+            }
+        })
+    } else {
+        return
+    }
+    
 }

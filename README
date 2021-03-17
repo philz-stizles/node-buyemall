@@ -1,6 +1,11 @@
+# SESSION
+-   express-session
+-   express-mysql-session
+
+
 # EMAILING
-nodemailer
-nodemailer-sendgrid-transport
+-   nodemailer
+-   nodemailer-sendgrid-transport
 
 Ensure that you do not block when sending emails. don not send emails in a blocking way, you can 
 // redirect while sending emails without waiting for response, do not wait for the email to be sent 

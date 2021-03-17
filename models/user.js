@@ -1,55 +1,18 @@
-const mongoose = require('mongoose')
+const { DataTypes } = require('sequelize')
+const sequelize = require('../db')
+const Product = require('./product');
+const Order = require('./order');
+const Cart = require('./cart');
 
-const userSchema = new mongoose.Schema({
-    username: { type: String, required: true, trim: true },
-    email: { type: String, required: true, trim: true },
-    password: { type: String, required: true },
-    avatar: { type: String },
-    resetToken: String,
-    resetTokenExpiration: Date,
-    cart: {
-        items: [{
-            product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
-            quantity: { type: Number, require: true }
-        }]
-    }
-}, { timestamps: true })
+const User = sequelize.define('User', {
+    id: { type: DataTypes.INTEGER, autoIncrement: true, allowNull: false, primaryKey: true },
+    username: { type: DataTypes.STRING, allowNull: false },
+    email: { type: DataTypes.STRING, allowNull: false },
+    password: { type: DataTypes.STRING, allowNull: false },
+    resetToken: { type: DataTypes.STRING, allowNull: true },
+    resetTokenExpiration : { type: DataTypes.DATE, allowNull: true }
+}, {
+    tableName: 'Users'
+})
 
-userSchema.methods.addToCart = function(product) {
-    const updatedCartItems = [...this.cart.items]
-    const existingProductIndex = updatedCartItems.findIndex(item => {
-        return item.product.toString() === product._id.toString()
-    })
-
-    if(existingProductIndex >= 0) { // Product already in cart, increment quantity
-        updatedCartItems[existingProductIndex].quantity += 1
-    } else { // Product not in cart, add to cart
-        updatedCartItems.push({ product: product._id, quantity: 1 })
-    }
-    
-    const updatedCart = {
-        items: updatedCartItems
-    }
-
-    this.cart = updatedCart
-
-    return this.save()
-}
-
-userSchema.methods.removeFromCart = function(id) {
-    const updatedCartItems = this.cart.items.filter(item => item.product.toString() !== id.toString())
-
-    this.cart.items = updatedCartItems
-
-    return this.save()
-}
-
-userSchema.methods.clearCart = function() {
-
-    this.cart = { items: [] }
-
-    return this.save()
-}
-
-
-module.exports = User = mongoose.model('User', userSchema)
+module.exports = User

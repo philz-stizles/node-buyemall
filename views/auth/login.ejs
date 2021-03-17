@@ -14,7 +14,6 @@
                     <div class="mb-3">
                         <label class="form-label" for="password">Email</label>
                         <input 
-                            autocomplete="off" 
                             value="<%= oldInput.email %>" 
                             class="form-control<%= validationErrors.find(e => e.param === 'email') ? ' is-invalid' : '' %>" 
                             id="email" type="email" name="email" placeholder="Email">

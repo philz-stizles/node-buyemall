@@ -10,13 +10,13 @@
                 <div class="row">
                     <div class="col-md-8">
                         <% if(orders.length > 0) { %>
-                            <% for(let item of orders) { %>
+                            <% for(let order of orders) { %>
                                 <div class="card w-100 p-4">
                                     <div class="card-body">
-                                        <h4>Order - # <%= item._id %> - <a href="/orders/<%= item._id %>" class="">Invoice</a></h4>
+                                        <h4>Order - # <%= order.dataValues.id %> - <a href="/orders/<%= order.dataValues.id %>" class="">Invoice</a></h4>
                                         <ul class="list-group">
-                                            <% for(let product of item.products) { %>
-                                                <li class="list-group-item"><%= product.product.title %> (<%= product.quantity %>)</li>
+                                            <% for(let product of order.dataValues.Products) { %>
+                                                <li class="list-group-item"><%= product.title %> (<%= product.OrderProduct.quantity %>)</li>
                                             <% } %>
                                         </ul>
                                     </div>

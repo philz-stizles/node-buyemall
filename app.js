@@ -3,21 +3,30 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const multer = require('multer');
-const mongoose = require('mongoose');
 const expressSession = require('express-session');
-const MongoDbStore = require('connect-mongodb-session')(expressSession);
+const SequelizeStore = require("connect-session-sequelize")(expressSession.Store);
 const csrf = require('csurf');
 const flash = require('connect-flash');
 const errorControllers = require('./controllers/errorControllers');
+const sequelize = require('./db');
+const User = require('./models/user');
+const Product = require('./models/product');
+const Cart = require('./models/cart');
+const Order = require('./models/order');
+const CartProduct = require('./models/cartProduct');
+const OrderProduct = require('./models/orderProduct');
 
 const app = express();
 
 // SESSION STORE
 // Store sessions in mongodb
-const sessionStore = new MongoDbStore({
-    uri: process.env.MONGODB_LOCAL_URI,
-    collection: 'sessions'
-})
+const sessionStore = new SequelizeStore({
+    db: sequelize,
+    // table: "Sessions",
+    // extendDefaultFields: extendDefaultFields
+    // checkExpirationInterval: 15 * 60 * 1000, // The interval at which to cleanup expired sessions in milliseconds.
+    // expiration: 24 * 60 * 60 * 1000  // The maximum age (in milliseconds) of a valid session.
+});
 
 // CSRF PROTECTION - INITIALIZE
 const csrfProtection = csrf();
@@ -82,8 +91,9 @@ app.use(expressSession({
     resave: false, // This means that the session will not be saved on every request that is sent
     // but only if something changedin the session
     saveUninitialized: false,
-    store: sessionStore // Add a store to use rather than memory
+    store: sessionStore, // Add a store to use rather than memory
     // Explore other configs
+    proxy: true
 }))
 
 // CSRF PROTECTION - APPLY MIDDLEWARE
@@ -96,22 +106,23 @@ app.use((req, res, next) => {
     next()
 })
 
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
     if(!req.session.user) {
         return next()
     }
 
-    User.findById(req.session.user._id)
-        .then(user => {
-            if(!user) {
-                return next()
-            }
-            req.user = user
-            next()
-        })
-        .catch(error => {
-            throw new Error(error)
-        })
+    try {
+        const user = await User.findByPk(req.session.user.id)
+        if(!user) {
+            return next()
+        }
+
+        // console.log(user)
+        req.user = user
+        next()
+    } catch (error) {
+        throw new Error(error)
+    }
 })
 
 // MVC VIEW ENGINE
@@ -135,21 +146,39 @@ app.use((error, req, res, next) => {
 });
 
 // Initialize DB & start Server
-mongoose.connect(process.env.MONGODB_LOCAL_URI, {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useFindAndModify: false,
-    useUnifiedTopology: true
-})
-    .then(() => {
-        console.log('DB connected');
+User.hasMany(Product, { as: 'products', foreignKey: 'creator' });
+Product.belongsTo(User);
 
-        const PORT = process.env.PORT
+User.hasMany(Order, { as: 'orders', foreignKey: 'user' });
+Order.belongsTo(User);
+
+User.hasOne(Cart, { as: 'cart', foreignKey: 'owner' });
+
+Product.belongsToMany(Order, { through: OrderProduct });
+Order.belongsToMany(Product, { through: OrderProduct });
+
+Product.belongsToMany(Cart, { through: CartProduct });
+Cart.belongsToMany(Product, { through: CartProduct });
+
+syncOptions = {}
+if(process.env.NODE_ENV === 'development') {
+    syncOptions.alter = true;
+    syncOptions.force = false;
+}
+sequelize.sync(syncOptions)
+    .then(result => {
+        // console.log(result);
+        console.log('DB Connection has been established successfully.');
+
+        const PORT = process.env.PORT;
         app.listen(PORT, (err) => {
             if(err) {
                 console.log(`Could not start server ${err.message}`);
             }
             console.log(`Buy em'all Server running on PORT ${PORT}`);
-        });   
+            console.log(`Client available @ http://localhost:${PORT}`);
+        });  
     })
-    .catch(error => console.log(error))
+    .catch(error => {
+        console.log(error)
+    }) 

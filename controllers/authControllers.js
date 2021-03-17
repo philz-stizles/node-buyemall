@@ -18,63 +18,68 @@ exports.getSignupView = (req, res) => {
         pageTitle: 'Signup', 
         path: '/auth/signup',
         oldInput: { username: '', email: '', password: '' },
-        errorMessage: (messages.length <= 0) ? null : messages
+        errorMessage: (messages.length <= 0) ? null : messages,
+        validationErrors: []
     });
 }
 
-exports.signup = (req, res) => {
+exports.signup = async (req, res, next) => {
     const { username, email, password } = req.body;
-    var errors = validationResult(req)
+
+    const errors = validationResult(req)
     if(!errors.isEmpty()) {
         return res.status(422).render('auth/signup', {
             path: '/auth/signup',
             pageTitle: 'Signup',
             errorMessage: errors.array()[0].msg,
             oldInput: { username, email, password },
+            validationErrors: errors.array()
         })
     }
 
-    User.findOne({ email })
-        .then(user => {
-            // Check that existing user does not exist
-            if(user) {
-                req.flash('error', 'User with email already exists')
-                return res.redirect('/auth/signup')
-            }
+    try {
+        const existingUser = await User.findOne({ where: { email } })
 
-            // Encrypt password
-            const salt = bcrypt.genSaltSync(12);
-            return bcrypt.hash(password, salt)
-                .then(hashedPassword => {
-                    // Create new user
-                    const newUser = new User({ username, email, password: hashedPassword })
-                    return newUser.save()
-                })
-                .then(newUser => {
-                    transporter.sendMail({
-                        to: newUser.email,
-                        from: process.env.EMAIL_FROM,
-                        subject: 'Signup succeeded',
-                        html: `<h1>You successfully signed up!</h1>`
-                    }, (error) => {
-                        if (error) {
-                            console.log(error);
-                        } else {
-                            res.redirect('/auth/login')
-                        }
-                    })
-                })
-                .catch(error => {
-                    console.log(error)
-                    const err = new Error(error)
-                    err.httpStatusCode = 500
-                    return next(err)
-                })
+        // Check that existing user does not exist
+        if(existingUser) {
+            return res.render('auth/signup', { 
+                pageTitle: 'Signup', 
+                path: '/auth/signup',
+                oldInput: { username, email, password },
+                errorMessage: 'User with email already exists'
+            });
+        }
+
+        // Encrypt password
+        const salt = bcrypt.genSaltSync(12);
+        const hashedPassword = await bcrypt.hash(password, salt)
+                
+        // Create new user
+        const newUser = await User.create(
+            { username, email, password: hashedPassword }, 
+            { fields: ['username', 'email', 'password'] }
+        )
+
+        await newUser.createCart()
+        
+        transporter.sendMail({
+            to: newUser.email,
+            from: process.env.EMAIL_FROM,
+            subject: 'Signup succeeded',
+            html: `<h1>You successfully signed up!</h1>`
+        }, (error) => {
+            if (error) {
+                console.log(error);
+            } 
         })
-        .catch(error => {
-            console.log(error)
-            return res.redirect('/auth/signup')
-        })
+
+        res.redirect('/auth/login')
+    } catch (error) {
+        console.log(error)
+        const err = new Error(error)
+        err.httpStatusCode = 500
+        return next(err)
+    }
 }
 
 exports.getLoginView = (req, res) => {
@@ -87,7 +92,7 @@ exports.getLoginView = (req, res) => {
     });
 }
 
-exports.login = (req, res) => {
+exports.login = async (req, res) => {
     const { email, password } = req.body;
     var errors = validationResult(req)
     if(!errors.isEmpty()) {
@@ -101,49 +106,41 @@ exports.login = (req, res) => {
         })
     }
 
-    User.findOne({ email })
-        .then(existingUser => {
-            if(!existingUser) {
-                return res.status(422).render('auth/login', {
-                    path: '/auth/login',
-                    pageTitle: 'Login',
-                    errorMessage: 'Invalid email or password',
-                    oldInput: { email, password },
-                    validationErrors: []
-                })
-            }
+    try {
+        const existingUser = await User.findOne({ where: {email} })
+        if(!existingUser) {
+            return res.status(422).render('auth/login', {
+                path: '/auth/login',
+                pageTitle: 'Login',
+                errorMessage: 'Invalid email or password',
+                oldInput: { email, password },
+                validationErrors: []
+            })
+        }
 
-            bcrypt
-                .compare(password, existingUser.password)
-                .then(isMatch => {
-                    if(!isMatch) {
-                        return res.status(422).render('auth/login', {
-                            path: '/auth/login',
-                            pageTitle: 'Login',
-                            errorMessage: 'Invalid email or password',
-                            oldInput: { email, password },
-                            validationErrors: []
-                        })
-                    }
-                    
-                    // req.session is added by the express-session middleware
-                    req.session.isAuthenticated = true
-                    req.session.user = existingUser
-                    req.session.save(error => {
-                        // console.log(error)
-                        return res.redirect('/')
-                    })
-                })
-                .catch(error => {
-                    console.log(error)
-                    res.redirect('/auth/login')
-                })
-
-        })
-        .catch(error => {
+        const isMatch = await bcrypt.compare(password, existingUser.password)
+        if(!isMatch) {
+            return res.status(422).render('auth/login', {
+                path: '/auth/login',
+                pageTitle: 'Login',
+                errorMessage: 'Invalid email or password',
+                oldInput: { email, password },
+                validationErrors: []
+            })
+        }
+        console.log(existingUser.dataValues)
+        // req.session is added by the express-session middleware
+        req.session.isAuthenticated = true
+        req.session.user = existingUser.dataValues
+        return req.session.save(error => {
             console.log(error)
-            res.redirect('/auth/login')
+            res.redirect('/')
         })
+
+    } catch (error) {
+        console.log(error)
+        res.redirect('/auth/login')
+    }
 }
 
 exports.getForgotPasswordView = (req, res) => {

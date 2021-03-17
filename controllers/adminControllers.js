@@ -12,7 +12,7 @@ exports.getCreateProductView = (req, res) => {
     });
 }
 
-exports.createProduct = (req, res) => {
+exports.createProduct = async (req, res, next) => {
     const { title, description, price, image } = req.body;
     const file = req.file;
     if(!file) {
@@ -36,42 +36,52 @@ exports.createProduct = (req, res) => {
         })
     }
 
-    const newProduct = new Product({ title, description, price, creator: req.user, imageURL: file.path })
-    newProduct.save()
-        .then(newProduct => {
-            res.redirect('/admin/products')
-        })
-        .catch(error => {
-            console.log(error)
-            // return res.status(500).render('admin/create-product', {
-            //     path: '/admin/create-product',
-            //     pageTitle: 'Create Product',
-            //     oldInput: { title, description, price },
-            //     errorMessage: 'Database operation failed, please try again'
-            // })
-            // res.redirect('/500')
-            const err = new Error(error)
-            err.httpStatusCode = 500
-            return next(err)
-        })
+    try {
+        // METHOD 1
+        // const product = await Product.create(
+        //     { title, description, price, creator: req.user.id, imageURL: file.path },
+        //     { fields: ['title', 'description', 'price', 'creator', 'imageURL'] }
+        // )
+        // METHOD 2
+        // Sequelize automatically creates these special magic functions when you define associations
+        // E.g. createProduct, getProducts, since a product belongs to a User
+        const product = await req.user.createProduct({ title, description, price, imageURL: file.path })
+        
+        console.log(product)
+        res.redirect('/admin/products')
+
+    } catch (error) {
+        console.log(error)
+        const err = new Error(error)
+        err.httpStatusCode = 500
+        return next(err)
+    }
 }
 
-exports.getProductsView = (req, res) => {
-    Product.find({ creator: req.user._id })
-        .then(products => {
-            res.render('admin/products', { 
-                pageTitle: 'View Products', 
-                products, 
-                path: '/admin/products',
-                hasProducts: products.length > 0 
-            });
-        })
-        .catch(error => {
-            console.log(error)
-            const err = new Error(error)
-            err.httpStatusCode = 500
-            return next(err)
-        })
+exports.getProductsView = async (req, res, next) => {
+    try {
+        // METHOD 1
+        // const products = await Product.findAll({ 
+        //     where: { creator: req.user.id }, 
+        //     // attributes: []
+        // })
+        // METHOD 2
+        // Sequelize automatically creates these special magic functions when you define associations
+        // E.g. createProduct, getProducts, since a product belongs to a User
+        const products = await req.user.getProducts()
+
+        res.render('admin/products', { 
+            pageTitle: 'View Products', 
+            products, 
+            path: '/admin/products',
+            hasProducts: products.length > 0 
+        });
+    } catch(error) {
+        console.log(error)
+        const err = new Error(error)
+        err.httpStatusCode = 500
+        return next(err)
+    }
 }
 
 exports.getProductDetailView = (req, res) => {
@@ -92,94 +102,97 @@ exports.getProductDetailView = (req, res) => {
         })
 }
 
-exports.getProductUpdateView = (req, res) => {
-    Product.findById(req.params.id)
-        .then(product => {
-            res.render('admin/update-product', { 
-                pageTitle: 'View Products', 
-                product, 
-                path: '/admin/update-product',
-                productExists: product !== null && product !== undefined 
-            });
-        })
-        .catch(error => {
-            console.log(error)
-            const err = new Error(error)
-            err.httpStatusCode = 500
-            return next(err)
-        })
+exports.getProductUpdateView = async (req, res, next) => {
+    try {
+        // METHOD 1
+        // const product = await Product.findByPk(req.params.id)
+        // METHOD 2
+        // Sequelize automatically creates these special magic functions when you define associations
+        // E.g. createProduct, getProducts, since a product belongs to a User
+        const product = await req.user.getProducts({ where: { id: req.params.id } })
+        res.render('admin/update-product', { 
+            pageTitle: 'View Products', 
+            product: product[0], 
+            path: '/admin/update-product',
+            productExists: product !== null && product !== undefined 
+        });
+    } catch(error) {
+        console.log(error)
+        const err = new Error(error)
+        err.httpStatusCode = 500
+        return next(err)
+    }
 }
 
-exports.updateProduct = (req, res) => {
+exports.updateProduct = async (req, res, next) => {
     const { title, description, price, image} = req.body
     const file = req.file;
-    Product.findOne({ _id: req.params.id, creator: req.user._id })
-        .then(product => {
-            if(!product) {
-                return res.redirect('/')
-            }
-            product.title = title
-            product.description = description
-            product.price = price
+    console.log(req.body)
+    try {
+        const existingProduct = await Product.findOne({ where: { id: req.params.id, creator: req.user.id } })
+        console.log(existingProduct)
+        if(!existingProduct) {
+            return res.redirect('/')
+        }
 
-            if(file) {
-                deletFile(product.imageURL)
-                product.imageURL = file.path
-            }
+        const dataValues = existingProduct.dataValues
 
-            return product.save()
-                .then(updatedProduct => {
-                    res.redirect('/admin/products')
-                })
-        })
-        .catch(error => {
-            console.log(error)
-            const err = new Error(error)
-            err.httpStatusCode = 500
-            return next(err)
-        })
+        existingProduct.title = title
+        existingProduct.description = description
+        existingProduct.price = price
+
+        if(file) {
+            deletFile(existingProduct.imageURL)
+            existingProduct.imageURL = file.path
+        }
+
+        await existingProduct.save()
+                
+        // await Product.update(dataValues, { where: { id: req.params.id, creator: req.user.id } })
+
+        res.redirect('/admin/products')
+
+    } catch(error) {
+        console.log(error)
+        const err = new Error(error)
+        err.httpStatusCode = 500
+        return next(err)
+    }
 }
 
-exports.deleteProduct = (req, res, next) => {
-    Product.findOne({ _id: req.params.id, creator: req.user._id })
-        .then(existingProduct => {
-            if(!existingProduct) {
-                return next(new Error('Product not found'))
-            }
+exports.deleteProduct = async (req, res, next) => {
+    try {
+        const existingProduct = await Product.findOne({ where: { id: req.params.id, creator: req.user.id } })
+        if(!existingProduct) {
+            return next(new Error('Product not found'))
+        }
             
-            deletFile(existingProduct.imageURL)
-            return Product.deleteOne({ _id: req.params.id, creator: req.user._id })
-        })
-        .then(() => {
-            res.redirect('/admin/products')
-        })
-        .catch(error => {
-            console.log(error)
-            const err = new Error(error)
-            err.httpStatusCode = 500
-            return next(err)
-        })
+        deletFile(existingProduct.imageURL)
+        await existingProduct.destroy()
+        
+        res.redirect('/admin/products')
 
-    
+    } catch(error) {
+        console.log(error)
+        const err = new Error(error)
+        err.httpStatusCode = 500
+        return next(err)
+    }
 }
 
-exports.deleteProductAPI = (req, res, next) => {
-    const id = req.params.id
-    Product.findOne({ _id: id, creator: req.user._id })
-        .then(existingProduct => {
-            if(!existingProduct) {
-                return next(new Error('Product not found'))
-            }
+exports.deleteProductAPI = async (req, res, next) => {
+    try {
+        const existingProduct = await Product.findOne({ where: { id: req.params.id, creator: req.user.id } })
+        if(!existingProduct) {
+            return next(new Error('Product not found'))
+        }
             
-            deletFile(existingProduct.imageURL)
-            return Product.deleteOne({ _id: id, creator: req.user._id })
-        })
-        .then(() => {
-            res.status(200).json({ data: true, message: 'success'})
-        })
-        .catch(error => {
-            res.status(500).json({ data: false, message: 'Delete failed'})
-        })
+        deletFile(existingProduct.imageURL)
+        await Product.destroy({ where: { id: req.params.id, creator: req.user.id } })
+        
+        res.status(200).json({ data: true, message: 'success'})
 
-    
+    } catch(error) {
+        res.status(500).json({ data: false, message: 'Delete failed'})
+    }
 }
