@@ -1,35 +1,34 @@
 const path = require('path');
 require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
 const expressSession = require('express-session');
-const MongoDbStore = require('connect-mongodb-session')(expressSession);
+// const cookieParser = require('cookie-parser');
 const csrf = require('csurf');
 const flash = require('connect-flash');
 const errorControllers = require('./controllers/errorControllers');
 
 const app = express();
 
-// SESSION STORE
-// Store sessions in mongodb
-const sessionStore = new MongoDbStore({
-    uri: process.env.MONGODB_LOCAL_URI,
-    collection: 'sessions'
-})
+// COOKIE
+// app.use(cookieParser())
 
 // CSRF PROTECTION - INITIALIZE
-const csrfProtection = csrf();
+// If you are setting the "cookie" option to a non-false value, then you must use cookie-parser before this module.
+// Otherwise, you must use a session middleware before this module. For example:
+// express-session
+// cookie-session
+// const csrfProtection = csrf({ cookie: true }); // Using cookie-parser
+const csrfProtection = csrf(); // Using sessions
 
 // FLASH MESSAGES
 app.use(flash());
 
 // Middlewares
 // parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false }));
 
 // parse application/json
-app.use(bodyParser.json());
+app.use(express.json());
 
 // res & req as you already know them from node HTTP, but with extra features
 // app.use((req, res, next) => {})
@@ -50,7 +49,7 @@ app.use(expressSession({
     resave: false, // This means that the session will not be saved on every request that is sent
     // but only if something changedin the session
     saveUninitialized: false,
-    store: sessionStore // Add a store to use rather than memory
+    cookie: {}// Add a store to use rather than memory
     // Explore other configs
 }))
 
@@ -58,21 +57,22 @@ app.use(expressSession({
 app.use(csrfProtection)
 
 app.use((req, res, next) => {
-    if(!req.session.user) {
-        return next()
-    }
+    // if(!req.session.user) {
+    //     return next()
+    // }
 
-    User.findById(req.session.user._id)
-        .then(user => {
-            req.user = user
-            next()
-        })
-        .catch(error => console.log(error))
+    // User.findById(req.session.user._id)
+    //     .then(user => {
+    //         req.user = user
+    //         next()
+    //     })
+    //     .catch(error => console.log(error))
+    next()
 })
 
 // SET LOCAL 
 app.use((req, res, next) => {
-    res.locals.isAuthenticated = req.session.isAuthenticated
+    res.locals.isAuthenticated = (req.session) ? req.session.isAuthenticated : false
     res.locals.csrfToken = req.csrfToken()
     next()
 })
@@ -93,25 +93,13 @@ app.use((error, req, res, next) => {
 });
 
 // Initialize DB
-console.log(process.env.MONGODB_LOCAL_URI)
-mongoose.connect(process.env.MONGODB_LOCAL_URI, {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useFindAndModify: false,
-    useUnifiedTopology: true
-})
-    .then(() => {
-        console.log('DB connected');
-
-        const PORT = process.env.PORT
-        app.listen(PORT, (err) => {
-            if(err) {
-                console.log(`Could not start server ${err.message}`);
-            }
-            console.log(`
-                Buy em'all Server running on PORT ${PORT}
-                Client available @ http://localhost:${PORT}
-            `);
-        });   
-    })
-    .catch(error => console.log(error))
+const PORT = process.env.PORT || 5000
+app.listen(PORT, (err) => {
+    if(err) {
+        console.log(`Could not start server ${err.message}`);
+    }
+    console.log(`
+        Buy em'all Server running on PORT ${PORT}
+        Client available @ http://localhost:${PORT}
+    `);
+});   

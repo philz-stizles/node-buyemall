@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require('uuid')
 const filePath = path.join(__dirname, '..', 'data', 'users.json')
 const readFromFile = (cb) => {
     fs.readFile(filePath, (error, fileContent) => {
-        return (error) ? cb([]) : cb(JSON.parse(fileContent))
+        return (error) ? cb(null, error) : cb(JSON.parse(fileContent), null)
     })
 }
 class User {
@@ -55,9 +55,9 @@ class User {
     }
 
     static findByEmail(email, cb) {
-        readFromFile(users => {
+        readFromFile((users, error) => {
             const user = users.find(item => item.email === email)
-            cb(user)
+            cb(user, error)
         })
     }
 

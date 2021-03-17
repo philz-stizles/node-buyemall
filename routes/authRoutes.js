@@ -25,7 +25,7 @@ router.route('/login')
     .get(authControllers.getLoginView)
     .post([
         check('username'),
-        check('email').isEmail().normalizeEmail().withMessage('Email is required')
+        check('email').isEmail().withMessage('Email is required') // .normalizeEmail()
     ], authControllers.login)
 
 router.route('/forgot-password')

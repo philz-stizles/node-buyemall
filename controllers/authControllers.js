@@ -57,28 +57,31 @@ exports.signup = (req, res) => {
                         console.log(error)
                     }
                     console.log(process.env.MAILCHIMP_API_KEY)
-                    transporter.sendMail({
-                        to: newUser.email,
-                        from: process.env.EMAIL_FROM,
-                        subject: 'Signup succeeded',
-                        html: `<h1>You successfully signed up!</h1>`
-                    }, (error) => {
-                        if (error) {
-                            console.log(error);
-                        } else {
-                            res.redirect('/auth/login')
-                        }
-                    })
+                    // transporter.sendMail({
+                    //     to: newUser.email,
+                    //     from: process.env.EMAIL_FROM,
+                    //     subject: 'Signup succeeded',
+                    //     html: `<h1>You successfully signed up!</h1>`
+                    // }, (error) => {
+                    //     if (error) {
+                    //         console.log(error);
+                    //     } else {
+                    //         res.redirect('/auth/login')
+                    //     }
+                    // })
+
+                    res.redirect(`/auth/login?email=${email}`)
                 })
             })
     })
 }
 
 exports.getLoginView = (req, res) => {
+    console.log(req.query)
     res.render('auth/login', { 
         pageTitle: 'Login', 
         path: '/auth/login',
-        oldInput: { email: '', password: '' },
+        oldInput: { email: req.query.email, password: '' },
         errorMessage: null,
         validationErrors: []
     });
@@ -97,30 +100,39 @@ exports.login = (req, res) => {
         })
     }
 
-    User.findOne({ email })
-        .then(existingUser => {
-            if(!existingUser) {
-                return res.status(422).render('auth/login', {
-                    path: '/auth/login',
-                    pageTitle: 'Login',
-                    errorMessage: 'Invalid email or password',
-                    oldInput: { email, password },
-                    validationErrors: []
-                })
-            }
+    User.findByEmail(email, (existingUser, error) => {
+        if(error) {
+            return res.status(422).render('auth/login', {
+                path: '/auth/login',
+                pageTitle: 'Login',
+                errorMessage: 'Please try again later',
+                oldInput: { email, password },
+                validationErrors: []
+            })
+        }
 
-            bcrypt
-                .compare(password, existingUser.password)
-                .then(isMatch => {
-                    if(!isMatch) {
-                        return res.status(422).render('auth/login', {
-                            path: '/auth/login',
-                            pageTitle: 'Login',
-                            errorMessage: 'Invalid email or password',
-                            oldInput: { email, password },
-                            validationErrors: []
-                        })
-                    }
+        if(!existingUser) {
+            return res.status(422).render('auth/login', {
+                path: '/auth/login',
+                pageTitle: 'Login',
+                errorMessage: 'Invalid email or password',
+                oldInput: { email, password },
+                validationErrors: []
+            })
+        }
+
+        return bcrypt
+            .compare(password, existingUser.password)
+            .then(isMatch => {
+                if(!isMatch) {
+                    return res.status(422).render('auth/login', {
+                        path: '/auth/login',
+                        pageTitle: 'Login',
+                        errorMessage: 'Invalid email or password',
+                        oldInput: { email, password },
+                        validationErrors: []
+                    })
+                }
                     
                     console.log(existingUser)
                     // req.session is added by the express-session middleware
@@ -136,10 +148,6 @@ exports.login = (req, res) => {
                     res.redirect('/auth/login')
                 })
 
-        })
-        .catch(error => {
-            console.log(error)
-            res.redirect('/auth/login')
         })
 }
 

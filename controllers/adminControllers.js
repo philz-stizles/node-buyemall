@@ -11,9 +11,9 @@ exports.getCreateProductView = (req, res) => {
 exports.createProduct = (req, res) => {
     var errors = validationResult(req)
     if(!errors.isEmpty()) {
-        return res.status(422).render('admin/update-product', {
-            path: '/admin/update-product',
-            pageTitle: 'Signup',
+        return res.status(422).render('admin/create-product', {
+            path: '/admin/create-product',
+            pageTitle: 'Create Product',
             errorMessage: errors.array()[0].msg
         })
     }

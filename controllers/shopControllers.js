@@ -1,7 +1,9 @@
 const Product = require('../models/product')
 
 exports.getIndexView = (req, res) => {
+    console.log('here')
     Product.findAll(products => {
+        console.log(products)
         res.render('shop/', { 
             pageTitle: 'Shop', 
             products, 

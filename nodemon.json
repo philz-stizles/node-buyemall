@@ -1,0 +1,7 @@
+{
+    "env": {
+        "SESSION_SECRET": "ANDJGLXNVMZXVCDDWUO",
+        "MAILCHIMP_API_KEY": "hgklfhkgfde",
+        "EMAIL_FROM": "admin.devdezyn.io"
+    }
+}

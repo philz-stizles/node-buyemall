@@ -1,1 +1,66 @@
-[{"id":"2aeac4c5-b1e6-4c38-a4bb-ef08a3e2dcb9","username":"theophilus","email":"philz.stizles@mail.com","password":"$2a$12$OzzLdMtIekqhh96pcS4irO9oRRMGqSNlS09hOXi0lNaJXjWjpj.Gq","resetToken":null,"resetTokenExpiration":null,"cart":{"items":[{"product":"","quantity":0}]}},{"id":"a5f77430-c57b-49b5-8da4-97e071f33ee0","username":"theophilus","email":"theophilusighalo@gmail.com","password":"$2a$12$I3IT0TgrLRbErAIHCi4GcOHxddV1m2BwezcR7hKQCPz78GTPxt6wu","resetToken":null,"resetTokenExpiration":null,"cart":{"items":[{"product":"","quantity":0}]}}]
+[
+    {
+        "id": "7b3007b6-bebc-433f-9d63-f86180698452",
+        "username": "sammy",
+        "email": "sammy@gmail.com",
+        "password": "$2a$12$qDHk/Y7QS6iGkqZA7odzsOTOtAnX7eggsnKJzxQEAcKa7WLFP6yiy",
+        "resetToken": null,
+        "resetTokenExpiration": null,
+        "cart": {
+            "items": [
+                {
+                    "product": "",
+                    "quantity": 0
+                }
+            ]
+        }
+    },
+    {
+        "id": "90811ab7-8479-4dff-9532-0ac25fcb3475",
+        "username": "james",
+        "email": "jamesighalo@gmail.com",
+        "password": "$2a$12$RQt1BTj5A4kDX.sl2ILAJ.vig5kN5TDDsUUq1/bW3oH9z6CCV6dDe",
+        "resetToken": null,
+        "resetTokenExpiration": null,
+        "cart": {
+            "items": [
+                {
+                    "product": "",
+                    "quantity": 0
+                }
+            ]
+        }
+    },
+    {
+        "id": "2aeac4c5-b1e6-4c38-a4bb-ef08a3e2dcb9",
+        "username": "theophilus",
+        "email": "philz.stizles@mail.com",
+        "password": "$2a$12$OzzLdMtIekqhh96pcS4irO9oRRMGqSNlS09hOXi0lNaJXjWjpj.Gq",
+        "resetToken": null,
+        "resetTokenExpiration": null,
+        "cart": {
+            "items": [
+                {
+                    "product": "",
+                    "quantity": 0
+                }
+            ]
+        }
+    },
+    {
+        "id": "a5f77430-c57b-49b5-8da4-97e071f33ee0",
+        "username": "theophilus",
+        "email": "theophilusighalo@gmail.com",
+        "password": "$2a$12$I3IT0TgrLRbErAIHCi4GcOHxddV1m2BwezcR7hKQCPz78GTPxt6wu",
+        "resetToken": null,
+        "resetTokenExpiration": null,
+        "cart": {
+            "items": [
+                {
+                    "product": "",
+                    "quantity": 0
+                }
+            ]
+        }
+    }
+]
