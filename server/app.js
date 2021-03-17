@@ -1,6 +1,5 @@
 // npm install express body-parser cors express-validator multer dotenv
 // npm install --save-dev nodemon
-require('dotenv').config()
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -92,7 +91,7 @@ app.use((error, req, res, next) => {
     res.status(status).json({ status: false, message, data });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 
 // Initialize DB
 mongoose.connect(process.env.MONGODB_LOCAL_URI, {

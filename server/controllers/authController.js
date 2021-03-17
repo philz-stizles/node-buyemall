@@ -37,6 +37,7 @@ exports.signup = (req, res) => {
 
 exports.login = (req, res, next) => {
     const { email, password } = req.body;
+    console.log(req.body)
     var errors = validationResult(req)
     if(!errors.isEmpty()) {
         console.log(errors.array())
@@ -65,14 +66,20 @@ exports.login = (req, res, next) => {
                     }
 
                     const { _id: id, username, email } = existingUser
-
+                    console.log(process.env.JWT_AUTH_EXPIRESIN)
+                    console.log(typeof process.env.JWT_AUTH_EXPIRESIN)
                     const token = jwt.sign({
                         id,
                         email
                     }, 
                     process.env.JWT_AUTH_SECRET, 
                     { 
-                        expiresIn: process.env.JWT_AUTH_EXPIRESIN 
+                        expiresIn: +process.env.JWT_AUTH_EXPIRESIN  // Note that process.env.JWT_AUTH_EXPIRESIN
+                        // might be a string if for example you are using nodemon.json, this will interpret expriesIn
+                        // in milliseconds if no additional time unit is added
+                        // This is why i added the plus(+) because i specified 1800 in nodemon.json which ideally 
+                        // should be interpreted as seconds if its read as an integer, but rather it is read as a string
+                        // thuus the conversion wit + to integer 
                     })
                     
                     return res.json({

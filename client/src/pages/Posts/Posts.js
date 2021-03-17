@@ -19,7 +19,7 @@ class Posts extends Component {
         postsLoading: true,
         error: null,
         isEditing: false,
-        editPost: false,
+        editPost: null,
         editLoading: false
     }
 
@@ -95,18 +95,15 @@ class Posts extends Component {
 
     newPostHandler = () => {
         this.setState({ isEditing: true });
-      };
+    };
     
-      startEditPostHandler = postId => {
-        this.setState(prevState => {
-          const loadedPost = { ...prevState.posts.find(p => p._id === postId) };
-    
-          return {
-            isEditing: true,
-            editPost: loadedPost
-          };
-        });
-      };
+    startEditPostHandler = postId => {
+      this.setState(prevState => {
+        const loadedPost = { ...prevState.posts.items.find(p => p._id === postId) };
+  
+        return { isEditing: true, editPost: loadedPost };
+      });
+    };
     
       cancelEditHandler = () => {
         this.setState({ isEditing: false, editPost: null });
@@ -118,11 +115,22 @@ class Posts extends Component {
         formData.append('title', postData.title)
         formData.append('content', postData.content)
         formData.append('image', postData.image)
-  
+        
+        const { editPost, isEditing } = this.state
+
+        let url = 'http://localhost:5000/api/v1/posts'
+        let method = 'POST'
+        
+        if(editPost) {
+          url = `http://localhost:5000/api/v1/posts/${editPost._id}`
+          method = 'PUT'
+        }
+
         this.setState({ editLoading: true });
+
         // Set up data (with image!)
-        fetch('http://localhost:5000/api/v1/posts', {
-          method: (this.state.editPost) ? 'PUT' : 'POST',
+        fetch(url , {
+          method,
           headers: {
             'Authorization': `Bearer ${this.props.userCredentials.token}`
           },
@@ -165,23 +173,24 @@ class Posts extends Component {
     
       deletePostHandler = postId => {
         this.setState({ postsLoading: true });
-        fetch('URL')
-          .then(res => {
-            if (res.status !== 200 && res.status !== 201) {
-              throw new Error('Deleting a post failed!');
+        fetch(`http://localhost/api/v1/posts/${}`, {
+          method: 'DELETE'
+        })
+          .then(res => res.json())
+          .then(responseData => {
+            console.log(responseData);
+            if(responseData.status === true) {
+              this.setState(prevState => {
+                const updatedPosts = prevState.posts.filter(p => p._id !== postId);
+                return { posts: updatedPosts, postsLoading: false };
+              });
+            } else {
+              this.setState({ postsLoading: false, error: responseData.message });
             }
-            return res.json();
-          })
-          .then(resData => {
-            console.log(resData);
-            this.setState(prevState => {
-              const updatedPosts = prevState.posts.filter(p => p._id !== postId);
-              return { posts: updatedPosts, postsLoading: false };
-            });
           })
           .catch(err => {
             console.log(err);
-            this.setState({ postsLoading: false });
+            this.setState({ postsLoading: false, error: err });
           });
       };
     

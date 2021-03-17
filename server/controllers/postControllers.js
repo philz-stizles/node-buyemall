@@ -66,19 +66,32 @@ exports.updatePost = (req, res) => {
     }
 
     const { title, content, image } = req.body
+    console.log('image', image)
+    let imageUrl = image
     
     if(req.file) {
         imageUrl = req.file.path
     }
 
-    Post.findByIdAndDelete(req.params.id)
-        .then((post) => {
-            if(!post) {
+    Post.findOne({ _id: req.params.id, creator: req.userId })
+        .then((existingPost) => {
+            if(!existingPost) {
                 const error = new Error('Post not found')
                 error.statusCode = 404
                 throw error
             }
-            res.status(200).send({ status: true, data: post, message: 'Deleted' })
+
+            if(imageUrl !== existingPost.imageUrl) {
+                deletFile(existingPost.imageUrl)
+            }
+
+            existingPost.title = title
+            existingPost.content = content
+            existingPost.imageUrl = imageUrl
+            return existingPost.save()
+        })
+        .then(updatedPost  => {
+            res.status(200).send({ status: true, data:updatedPost, message: 'Updated' })
         })
         .catch(error => {
             console.log(error)

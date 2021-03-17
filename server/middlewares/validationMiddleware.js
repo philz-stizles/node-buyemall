@@ -9,6 +9,7 @@ exports.signupValidator = [
         .trim()
         .isEmail().withMessage('A valid email is required')
         .custom((value, { req }) => {
+            console.log(value)
             return User.findOne({ email: value })
                 .then(exisiingUser => {
                     console.log(exisiingUser)
@@ -19,8 +20,8 @@ exports.signupValidator = [
                     // return Promise.resolve()
                 })
             
-        })
-        .normalizeEmail(),
+        }),
+        // .normalizeEmail(),
     body('password')
         .trim()
         .isLength({ min: 6 }).withMessage('A valid password not less than 6 characters'),
@@ -38,7 +39,8 @@ exports.loginValidator = [
     body('email')
         .trim()
         .isEmail().withMessage('Invalid username or password')
-        .normalizeEmail(),
+        ,
+        // .normalizeEmail(),
     body('password')
         .trim()
         .isLength({ min: 6 }).withMessage('Invalid username or password'),
