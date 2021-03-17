@@ -18,7 +18,8 @@ app.use(helmet());
 app.use(compression());
 
 // LOGGING
-app.use(morgan('combined'));
+// app.use(morgan());
+// app.use(morgan('combined'));
 
 // parse application/x-www-form-urlencoded <form></form>
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -94,7 +95,7 @@ app.use((error, req, res, next) => {
 const PORT = process.env.PORT;
 
 // Initialize DB
-mongoose.connect(process.env.MONGODB_LOCAL_URI, {
+mongoose.connect(process.env.MONGODB_CLOUD_URI, {
     useNewUrlParser: true,
     useCreateIndex: true,
     useFindAndModify: false,

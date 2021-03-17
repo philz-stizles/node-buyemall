@@ -133,11 +133,11 @@ class PostEdit extends Component {
   };
 
   render() {
-    const { loading } = this.props
+    const { loading, editing } = this.props
     const { postForm, formIsValid } = this.state
     const { title } = postForm
 
-    return this.props.editing ? (
+    return editing ? (
       <Fragment>
         <Backdrop onClick={this.cancelPostChangeHandler} />
         <Modal
@@ -176,7 +176,7 @@ class PostEdit extends Component {
               id="content"
               label="Content"
               control="textarea"
-              rows="5"
+              rows="3"
               onChange={this.postInputChangeHandler}
               onBlur={this.inputBlurHandler.bind(this, 'content')}
               valid={this.state.postForm['content'].valid}

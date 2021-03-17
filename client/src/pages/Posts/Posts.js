@@ -6,7 +6,6 @@ import Paginator from '../../components/Paginator/Paginator'
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import './Posts.css'
-import { Redirect } from 'react-router'
 
 class Posts extends Component {
     state = {
@@ -36,7 +35,9 @@ class Posts extends Component {
                 console.log(responseData)
                 if(responseData.status === true) {
                   const { posts, count } = responseData.data
-                  this.setState({ posts: { items: posts, count  }, postsLoading: false })
+                  this.setState({ posts: { items: posts.map(post => {
+                    return { ...post, imagePath: post.imageUrl }
+                  }), count  }, postsLoading: false })
                 } else {
                   this.setState({ postsLoading: false, error: responseData.message })
                 }
@@ -116,7 +117,7 @@ class Posts extends Component {
         formData.append('content', postData.content)
         formData.append('image', postData.image)
         
-        const { editPost, isEditing } = this.state
+        const { editPost } = this.state
 
         let url = 'http://localhost:5000/api/v1/posts'
         let method = 'POST'
@@ -138,6 +139,7 @@ class Posts extends Component {
         })
           .then(response => response.json())
           .then(responseData => {
+            console.log(responseData)
             if(responseData.status === true) {
               const { _id, title, content, creator, createdAt } = responseData.data;
               const post = { _id, title, content, creator, createdAt };
@@ -173,8 +175,11 @@ class Posts extends Component {
     
       deletePostHandler = postId => {
         this.setState({ postsLoading: true });
-        fetch(`http://localhost/api/v1/posts/${postId}`, {
-          method: 'DELETE'
+        fetch(`http://localhost:5000/api/v1/posts/${postId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${this.props.userCredentials.token}`
+          }
         })
           .then(res => res.json())
           .then(responseData => {

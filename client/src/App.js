@@ -129,7 +129,7 @@ class App extends Component{
   }
 
   render() {
-    const { isAuthenticated, authLoading, userId, token, showMobileNav, showBackdrop } = this.state
+    const { isAuthenticated, authLoading, userId, token, showMobileNav } = this.state
     let routes = <PublicRoutes loading={authLoading} onLogin={this.handleLogin} onSignup={this.handleSignup} />
 
     if (isAuthenticated) {

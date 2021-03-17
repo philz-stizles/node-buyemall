@@ -5,7 +5,7 @@ const { deletFile } = require('../utils/file-utils')
 
 exports.createPost = (req, res) => {
     console.log(req.file)
-    const errors = validationResult(req.body)
+    const errors = validationResult(req)
     if(!errors.isEmpty()) {
         return res.status(400).send({ data: errors.array() })
     }
@@ -60,7 +60,7 @@ exports.getAllPosts = async (req, res) => {
 }
 
 exports.updatePost = (req, res) => {
-    const errors = validationResult(req.body)
+    const errors = validationResult(req)
     if(!errors.isEmpty()) {
         return res.status(400).send({ data: errors.array() })
     }
@@ -71,8 +71,10 @@ exports.updatePost = (req, res) => {
     
     if(req.file) {
         imageUrl = req.file.path
+        console.log('filePath', req.file.path)
     }
-
+    console.log(req.params.id, req.userId )
+    console.log('IMAGEUrl', imageUrl)
     Post.findOne({ _id: req.params.id, creator: req.userId })
         .then((existingPost) => {
             if(!existingPost) {
@@ -80,14 +82,14 @@ exports.updatePost = (req, res) => {
                 error.statusCode = 404
                 throw error
             }
-
-            if(imageUrl !== existingPost.imageUrl) {
-                deletFile(existingPost.imageUrl)
+            console.log('existing', existingPost.imageUrl)
+            if(imageUrl && imageUrl !== existingPost.imageUrl) {
+                deletFile(existingPost.imageUrl) 
+                existingPost.imageUrl = imageUrl
             }
 
             existingPost.title = title
             existingPost.content = content
-            existingPost.imageUrl = imageUrl
             return existingPost.save()
         })
         .then(updatedPost  => {
@@ -103,6 +105,7 @@ exports.updatePost = (req, res) => {
 }
 
 exports.deletePost = (req, res) => {
+    console.log(req.params.id)
     Post.findOne({ _id: req.params.id, creator: req.userId })
         .then((post) => {
             if(!post) {
@@ -110,12 +113,12 @@ exports.deletePost = (req, res) => {
                 error.statusCode = 404
                 throw error
             }
-
+            console.log(post)
             deletFile(post.imageUrl)
             return Post.findByIdAndRemove(req.params.id)
         })
-        .then((result) => {
-            console.log(result)
+        .then((post) => {
+            console.log(post)
             res.status(200).send({ status: true, data: post, message: 'Deleted' })
         })
         .catch(error => {
