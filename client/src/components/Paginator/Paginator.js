@@ -3,6 +3,8 @@ import PropTypes from 'prop-types'
 import './Paginator.css';
 
 const Paginator = ({ children, currentPage, lastPage, onPrevious, onNext }) => {
+    console.log(currentPage)
+    console.log(lastPage)
     return (
         <div className="paginator">
             {children}

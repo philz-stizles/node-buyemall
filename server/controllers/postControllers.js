@@ -2,8 +2,9 @@ const fs = require('fs')
 const { validationResult } = require('express-validator')
 const Post = require('../models/Post')
 const { deletFile } = require('../utils/file-utils')
+const io = require('../socket')
 
-exports.createPost = (req, res) => {
+exports.createPost = async (req, res) => {
     console.log(req.file)
     const errors = validationResult(req)
     if(!errors.isEmpty()) {
@@ -15,11 +16,25 @@ exports.createPost = (req, res) => {
     console.log(req.userId)
 
     const newPost = new Post({ title, content, imageUrl: req.file.path.replace("\\" ,"/"), creator: req.userId })
-    newPost.save()
-        .then((result) => {
-            res.status(201).send({ status: true, data: result, message: 'Created' })
-        })
-        .catch(error => console.log(error))
+    
+    try {
+        const post = await newPost.save()
+
+        const user = await User.findById(req.userId)
+        user.posts.unshift(post)
+        await user.save()
+        
+        // io.getIO().broadcast() // This will send to all connected users accept the emitter
+        io.getIO().emit('posts', { action: 'create', post }) // This will send to all connected users. 
+        // You can pass any object with any data you want
+        res.status(201).send({ status: true, data: {
+            post,
+            creator: { _id: user._id, username: user.username }
+        }, message: 'Created' })
+
+    } catch (error) {
+        console.log(error)
+    }
 }
 
 exports.getPost = (req, res) => {
@@ -43,20 +58,25 @@ exports.getPost = (req, res) => {
 }
 
 exports.getAllPosts = async (req, res) => {
-    Post.find()
-        .then((posts) => {
-            res.status(200).send({ status: true, data: {
-                posts,
-                count: posts.length
-            }, message: 'Retrieved' })
-        })
-        .catch(error => {
-            console.log(error)
-            if(!error) {
-                error.statusCode = 500
-            }
-            next(error)
-        })
+    const currentPage = req.query.currentPage || 1
+    const limit = 5
+    try {
+        const count = await Post.countDocuments()
+        const posts = await Post.find()
+            .populate('creator', 'username')
+            .sort({ createdAt: -1 })
+            .skip((currentPage - 1) * limit)
+            .limit(limit)
+        
+        res.status(200).send({ status: true, data: { posts, count }, message: 'Retrieved' })
+
+    } catch (error) {
+        console.log(error)
+        if(!error) {
+            error.statusCode = 500
+        }
+        next(error)
+    }
 }
 
 exports.updatePost = (req, res) => {
@@ -94,7 +114,11 @@ exports.updatePost = (req, res) => {
         })
         .then(updatedPost  => {
             console.log(updatedPost)
-            res.status(200).send({ status: true, data:updatedPost, message: 'Updated' })
+            // io.getIO().broadcast() // This will send to all connected users accept the emitter
+            io.getIO().emit('posts', { action: 'update', post: updatedPost }) // This will send to all connected users. 
+            // You can pass any object with any data you want
+
+            res.status(200).send({ status: true, data: updatedPost, message: 'Updated' })
         })
         .catch(error => {
             console.log(error)
@@ -118,7 +142,11 @@ exports.deletePost = (req, res) => {
             deletFile(post.imageUrl)
             return Post.findByIdAndRemove(req.params.id)
         })
-        .then((post) => {
+        .then((deletedPost) => {
+            // io.getIO().broadcast() // This will send to all connected users accept the emitter
+            io.getIO().emit('posts', { action: 'delete', post: deletedPost }) // This will send to all connected users. 
+            // You can pass any object with any data you want
+
             res.status(200).send({ status: true, data: post, message: 'Deleted' })
         })
         .catch(error => {

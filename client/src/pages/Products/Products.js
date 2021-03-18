@@ -1,12 +1,12 @@
 import React, { Component, Fragment } from 'react'
 import openSocket from 'socket.io-client'
-import PostEdit from './PostEdit/PostEdit'
-import PostItem from './PostItem/PostItem'
+import PostEdit from './ProductEdit/ProductEdit'
+import PostItem from './ProductItem/ProductItem'
 import Loader from '../../components/Loader/Loader'
 import Paginator from '../../components/Paginator/Paginator'
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
-import './Posts.css'
+import './Products.css'
 
 class Posts extends Component {
     state = {
@@ -64,10 +64,8 @@ class Posts extends Component {
               console.log(data)
               if(data.action === 'create') {
                 this.addPost(data.post)
-              } else if(data.action === 'update'){
-                this.updatePost(data.post)
               } else {
-                this.loadPosts()
+                this.updatePost(data.post)
               }
             })
 
@@ -115,32 +113,20 @@ class Posts extends Component {
 
 
     loadPosts = direction => {
-      console.log(direction)
-      const { posts } = this.state
         if (direction) {
-          this.setState({ postsLoading: true, posts: { ...posts, items: [] } });
+          this.setState({ postsLoading: true, posts: [] });
         }
-
-        let page = posts.currentPage;
-
+        let page = this.state.posts.currentPage;
         if (direction === 'next') {
           page++;
-          this.setState({ posts: { ...posts, items: [], currentPage: page } });
+          this.setState({ posts: page });
         }
-
         if (direction === 'previous') {
           page--;
-          this.setState({ posts: { ...posts, currentPage: page } });
+          this.setState({ postPage: page });
         }
-
-        console.log(page)
-
-        fetch(`http://localhost:5000/api/v1/posts?currentPage=${page}`, {
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.props.userCredentials.token}`
-          }
-        })
+        
+        fetch(`http://localhost:5000/api/v1/posts?page=${page}`)
           .then(res => {
             if (res.status !== 200) {
               throw new Error('Failed to fetch posts.');
@@ -148,10 +134,9 @@ class Posts extends Component {
             return res.json();
           })
           .then(({ status, data, message }) => {
-            console.log(status, data, message)
             if(status === true) {
               this.setState({ 
-                posts: { ...posts, items: data.posts, count: data.count, currentPage: page },
+                posts: { items: data.posts, count: data.count },
                 postsLoading: false
               });
             } else {
@@ -227,7 +212,28 @@ class Posts extends Component {
               const post = { _id, title, content, creator: data.creator, createdAt, imageUrl };
 
               this.setState(prevState => {
-                return { isEditing: false, editPost: null, editLoading: false };
+                const { posts, editPost } = prevState
+                const { items, count, limit, currentpage  } = posts
+                let updatedItems = [...items];
+                let itemCount = count
+                if (editPost) {
+                  const postIndex = items.findIndex(p => p._id === editPost._id);
+                  updatedItems[postIndex] = post;
+                // } else if (posts.length < 2) {
+                } else {
+                // itemCount = ()
+                //   updatedItems = items.concat(post);
+                }
+                
+                return { 
+                  posts: { 
+                    ...posts, 
+                    items: updatedItems,
+                  }, 
+                  isEditing: false, 
+                  editPost: null, 
+                  editLoading: false 
+                };
               });
             } else {
               this.setState({ isEditing: false, editPost: null, editLoading: false, error: message });
@@ -256,14 +262,13 @@ class Posts extends Component {
           .then(responseData => {
             console.log(responseData);
             if(responseData.status === true) {
-              this.loadPosts()
-              // this.setState(prevState => {
-              //   const updatedPosts = prevState.posts.items.filter(p => p._id !== postId);
-              //   return { posts: { 
-              //     ...prevState.posts,
-              //     items:  updatedPosts
-              //   }, postsLoading: false };
-              // });
+              this.setState(prevState => {
+                const updatedPosts = prevState.posts.items.filter(p => p._id !== postId);
+                return { posts: { 
+                  ...prevState.posts,
+                  items:  updatedPosts
+                }, postsLoading: false };
+              });
             } else {
               this.setState({ postsLoading: false, error: responseData.message });
             }

@@ -31,8 +31,8 @@ class App extends Component{
     localStorage.removeItem('Buyemall')
   }
 
-  setAutoLogout = (expresIn) => {
-    setTimeout(() => this.handleLogout(), expresIn)
+  setAutoLogout = (expiresIn) => {
+    setTimeout(() => this.handleLogout(), expiresIn)
   }
 
   handleLogin = (e, { email, password }) => {
@@ -50,7 +50,7 @@ class App extends Component{
         if(data.status === true) {
           // Set state
           const token = data.data.token
-          const userId = data.data.loggedInUser.userId
+          const userId = data.data.loggedInUser.id
           this.setState({ 
             isAuthenticated: true, 
             authLoading: false,
@@ -58,9 +58,18 @@ class App extends Component{
             userId
           })
 
+
+          // Configure token expiration time -> 30mins
+          const remainingSeconds = 60 * 30 
+          const remainingMilliseconds = remainingSeconds * 1000;
+          const expiresIn = new Date(
+            new Date().getTime() + remainingMilliseconds
+          ).toISOString();
+    
           // Store credentials in localstorage
-          const userCredentials = { token, userId }
+          const userCredentials = { token, userId, expiresIn }
           localStorage.setItem('Buyemall', JSON.stringify(userCredentials))
+          this.setAutoLogout(remainingMilliseconds);
         } else {
           this.setState({ isAuthenticated: false, authLoading: false })
         }
@@ -109,23 +118,22 @@ class App extends Component{
       return
     }
 
-    const { token, expiresIn } = JSON.parse(userCredentialsJSON)
+    const userCredentials = JSON.parse(userCredentialsJSON)
 
     // if(!token || !expiresIn) {
-    if(!token) {
+    if(!userCredentials.token) {
       return
     }
 
-    // const expresInDate = new Date(expiresIn)
-    // if( expresInDate <= new Date()) {
-    //   this.handleLogout()
-    //   return
-    // }
+    const expresInDate = new Date(userCredentials.expiresIn)
+    if( expresInDate <= new Date()) {
+      this.handleLogout()
+      return
+    }
 
-    // const remainingMilliseconds = expresInDate.getTime() - new Date().getTime()
-    // localStorage.setItem('expiresIn', remainingMilliseconds)
-    this.setState({ isAuthenticated: true, token })
-    // this.setAutoLogout(remainingMilliseconds)
+    const remainingMilliseconds = expresInDate.getTime() - new Date().getTime()
+    this.setState({ isAuthenticated: true, token: userCredentials.token })
+    this.setAutoLogout(remainingMilliseconds)
   }
 
   render() {
