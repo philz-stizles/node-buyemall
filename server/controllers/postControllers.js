@@ -70,7 +70,7 @@ exports.updatePost = (req, res) => {
     let imageUrl = image
     
     if(req.file) {
-        imageUrl = req.file.path
+        imageUrl = req.file.path.replace('\\', '/')
         console.log('filePath', req.file.path)
     }
     console.log(req.params.id, req.userId )
@@ -93,6 +93,7 @@ exports.updatePost = (req, res) => {
             return existingPost.save()
         })
         .then(updatedPost  => {
+            console.log(updatedPost)
             res.status(200).send({ status: true, data:updatedPost, message: 'Updated' })
         })
         .catch(error => {
@@ -113,12 +114,11 @@ exports.deletePost = (req, res) => {
                 error.statusCode = 404
                 throw error
             }
-            console.log(post)
+
             deletFile(post.imageUrl)
             return Post.findByIdAndRemove(req.params.id)
         })
         .then((post) => {
-            console.log(post)
             res.status(200).send({ status: true, data: post, message: 'Deleted' })
         })
         .catch(error => {

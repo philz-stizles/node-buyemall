@@ -23,8 +23,6 @@ class PostDetail extends Component {
         .then(response => response.json())
         .then(responseData => {
             if (responseData.status === true) {
-                console.log(responseData)
-                console.log('http://localhost:5000/' + responseData.data.imageUrl)
                 this.setState({
                     title: responseData.data.title,
                     author: responseData.data.creator.username,

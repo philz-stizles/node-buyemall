@@ -62,7 +62,7 @@ app.use(multer({
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE')
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Access-Control-Allow-Origin')
     if(req.method === 'OPTIONS') {
         return res.sendStatus(200)
     }
@@ -95,7 +95,7 @@ app.use((error, req, res, next) => {
 const PORT = process.env.PORT;
 
 // Initialize DB
-mongoose.connect(process.env.MONGODB_CLOUD_URI, {
+mongoose.connect(process.env.MONGODB_LOCAL_URI, {
     useNewUrlParser: true,
     useCreateIndex: true,
     useFindAndModify: false,
@@ -103,11 +103,24 @@ mongoose.connect(process.env.MONGODB_CLOUD_URI, {
 })
     .then(() => {
         console.log('DB connected');
-        app.listen(PORT, (err) => {
+        const server = app.listen(PORT, (err) => {
             if(err) {
                 console.log(`Could not start server ${err.message}`);
             }
             console.log(`Buy em'all Server running on PORT ${PORT}`);
-        });   
+        }); 
+        
+        const io = require('socket.io')(server, {
+            cors: {
+                origin: "http://localhost:3000",
+                methods: ["GET", "POST"],
+                // allowedHeaders: ["my-custom-header"],
+                // credentials: true
+            }
+        })
+        io.on('connection', socket => {
+            console.log(`Client connected`);
+        })
+
     })
     .catch(error => console.log(error))

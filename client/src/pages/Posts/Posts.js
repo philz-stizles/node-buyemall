@@ -1,4 +1,5 @@
 import React, { Component, Fragment } from 'react'
+import openSocket from 'socket.io-client'
 import PostEdit from './PostEdit/PostEdit'
 import PostItem from './PostItem/PostItem'
 import Loader from '../../components/Loader/Loader'
@@ -47,6 +48,25 @@ class Posts extends Component {
                 console.log(error)
                 this.setState({ postsLoading: false, error: error })
             })
+
+            openSocket('http://localhost:5000')
+    }
+
+    addPost = (post) => {
+      this.setState(prevState => {
+        const updatedPosts = [...prevState.posts];
+        if (prevState.postPage === 1) {
+          if (prevState.posts.length >= 2) {
+            updatedPosts.pop();
+          }
+          updatedPosts.unshift(post);
+        }
+        return {
+          posts: updatedPosts,
+          totalPosts: prevState.totalPosts + 1
+        };
+      });
+      
     }
 
     loadPosts = direction => {
@@ -141,8 +161,8 @@ class Posts extends Component {
           .then(responseData => {
             console.log(responseData)
             if(responseData.status === true) {
-              const { _id, title, content, creator, createdAt } = responseData.data;
-              const post = { _id, title, content, creator, createdAt };
+              const { _id, title, content, creator, createdAt, imageUrl } = responseData.data;
+              const post = { _id, title, content, creator, createdAt, imageUrl };
 
               this.setState(prevState => {
                 const { posts, editPost } = prevState
