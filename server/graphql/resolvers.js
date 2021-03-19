@@ -3,12 +3,12 @@ const jwt = require('jsonwebtoken')
 const { isEmail, isEmpty, isLength } = require('validator')
 const User = require('../models/User')
 const Post = require('../models/Post')
-const { clearImage } = require('../utils/file-utils')
+const { clearImage, deletFile } = require('../utils/file-utils')
 
 module.exports = {
     register: async (args, request) => {
         // Destructure input fields
-        const { email, password, username } = args.user
+        const { email, password, username } = args.credentials
 
         // Validate input fields
         const errors = []
@@ -16,18 +16,22 @@ module.exports = {
             errors.push('E-mail is invalid')
         }
 
-        if(isEmpty(password) || isLength(password, { min: 6 })) {
+        if(isEmpty(password) || !isLength(password, { min: 6 })) {
             errors.push('Password with more than 6 characters is required')
         }
 
         if(errors.length > 0) {
-            throw new Error('Invalid input fields')
+            const error = new Error('Invalid input.');
+            error.data = errors;
+            error.code = 422;
+            throw error;
         }
 
         // Check is User already exists
         const existingUser = await User.findOne({email})
         if(existingUser) {
-            throw new Error('User already exists')
+            const error = new Error('User already exists')
+            throw error
         }
 
         // Hash password
@@ -35,7 +39,7 @@ module.exports = {
         const hashedPassword = await bcrypt.hash(password, salt)
 
         // Create User
-        const newUser = new User({ username, email, hashedPassword})
+        const newUser = new User({ username, email, password: hashedPassword})
         const createdUser = await newUser.save()
 
         return { ...createdUser._doc, _id: createdUser._id.toString() }
@@ -43,7 +47,7 @@ module.exports = {
     login: async (args, request) => {
         // Destructure input fields
         const { email, password } = args.credentials
-        console.log(email, password )
+
         // Check is User exists
         const existingUser = await User.findOne({email})
         if(!existingUser) {
@@ -61,8 +65,12 @@ module.exports = {
         }
 
         // Generate token
-        const token = jwt.sign({ userId: existingUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' })
-        console.log(existingUser._id)
+        const token = jwt.sign(
+            { userId: existingUser._id, email: existingUser.email, username: existingUser.username }, 
+            process.env.JWT_AUTH_SECRET, 
+            { expiresIn: +process.env.JWT_AUTH_EXPIRESIN }
+        )
+
         return { userId: existingUser._id, token }
     },
     createUser: async (args, request) => {
@@ -102,8 +110,39 @@ module.exports = {
 
         return { ...createdUser._doc, _id: createdUser._id.toString() }
     },
-    createPost: async (args, request) => {
-        if(!request.isAuthenticated) {
+    user: async (args, req) => {
+        console.log(req.userId)
+        if (!req.isAuth) {
+            const error = new Error('Not authenticated!');
+            error.code = 401;
+            throw error;
+        }
+        const user = await User.findById(req.userId);
+        if (!user) {
+            const error = new Error('No user found!');
+            error.code = 404;
+            throw error;
+        }
+        return { ...user._doc, _id: user._id.toString() };
+    },
+    updateStatus: async (args, req) => {
+        if (!req.isAuth) {
+            const error = new Error('Not authenticated!');
+            error.code = 401;
+            throw error;
+        }
+        const user = await User.findById(req.userId);
+        if (!user) {
+            const error = new Error('No user found!');
+            error.code = 404;
+            throw error;
+        }
+        user.status = args.status;
+        await user.save();
+        return { ...user._doc, _id: user._id.toString() };
+    },
+    createPost: async (args, req) => {
+        if(!req.isAuth) {
             const error = new Error('You are not authenticated')
             error.code = 401
             throw error
@@ -129,7 +168,7 @@ module.exports = {
         }
 
         // Validate authenticated user
-        const existingUser = User.findById()
+        const existingUser = await User.findById(req.userId)
         if(!existingUser) {
             const error = new Error('Invalid user.')
             error.code = 401
@@ -137,11 +176,11 @@ module.exports = {
         }
 
         // Create Post
-        const newPost = new Post({ title, content, imageUrl: 'fhjg', creator: request.userId })
+        const newPost = new Post({ title, content, imageUrl: imageUrl.replace('\\', '/'), creator: existingUser })
         const createdPost = await newPost.save()
 
         // Add post to users posts
-        existingUser.posts.push(newPost)
+        existingUser.posts.unshift(newPost)
         await existingUser.save()
 
         return { 
@@ -151,16 +190,16 @@ module.exports = {
             updatedAt: createdPost.updatedAt.toISOString(),
         }
     },
-    updatePost: async (args, request) => {
+    updatePost: async (args, req) => {
         // Authenticate User
-        if(!request.isAuthenticated) {
+        if(!req.isAuth) {
             const error = new Error('You are not authenticated')
             error.code = 401
             throw error
         }
 
         // Check if post exists
-        const existingPost = await Post.findById(args.postId)
+        const existingPost = await Post.findById(args.postId).populate('creator', 'username')
         if(!existingPost) {
             const error = new Error('Post not found.')
             error.code = 404
@@ -168,13 +207,13 @@ module.exports = {
         }
 
         // Validate post creator
-        if(existingPost.creator !== request.userId) {
+        if(existingPost.creator._id.toString() !== req.userId.toString()) {
             const error = new Error('Not authorized.')
             error.code = 403
             throw error
         }
 
-        const { title, content } = args.post
+        const { title, content, imageUrl } = args.post
 
         // Validate input fields
         const errors = []
@@ -196,15 +235,20 @@ module.exports = {
         // Update Post
         existingPost.title = title
         existingPost.content = content
-        if(imageUrl || imageUrl !== 'undefined') {
+        if(imageUrl && imageUrl !== 'undefined') {
             existingPost.imageUrl = imageUrl 
         }
         const updatedPost = await existingPost.save()
 
-        return updatedPost
+        return {
+            ...updatedPost._doc,
+            _id: updatedPost._id.toString(),
+            createdAt: updatedPost.createdAt.toISOString(),
+            updatedAt: updatedPost.updatedAt.toISOString()
+        };
     },
-    deletePost: async (args, request) => {
-        if(!request.isAuthenticated) {
+    deletePost: async (args, req) => {
+        if(!req.isAuth) {
             const error = new Error('You are not authenticated')
             error.code = 401
             throw error
@@ -219,49 +263,75 @@ module.exports = {
         }
 
         // Validate post creator
-        if(existingPost.creator !== request.userId) {
+        if(existingPost.creator._id.toString() !== req.userId.toString()) {
             const error = new Error('Not authorized.')
             error.code = 403
             throw error
         }
 
         // Delete the attached image
-        clearImage(existingPost.imageUrl)
+        deletFile(existingPost.imageUrl)
 
         // Delete post
         await Post.findByIdAndRemove(args.postId)
 
         // Remove post from user
-        await Post.findByIdAndRemove(args.postId)
+        const user = await User.findById(req.userId)
+        user.posts.pull(args.postId)
+        await user.save()
 
         return true
     },
-    posts: async (args, request) => {
-        if(!request.isAuthenticated) {
+    posts: async (args, req) => {
+        if(!req.isAuth) {
             const error = new Error('You are not authenticated')
             error.code = 401
             throw error
         }
 
-        const count = await Post.find().countDocuments()
-        const posts = await Post.find().sort({ createdAt: -1 }).populate('creator', 'username')
+        const page = args.page || 1
+        const limit = args.limit || 5
+        const skip = (page - 1) * limit
 
-        return { posts, count }
+        const count = await Post.find().countDocuments()
+        const posts = await Post.find()
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate('creator', 'username')
+
+        return { 
+            posts: posts.map(p => {
+                return {
+                    ...p._doc,
+                    _id: p._id.toString(),
+                    createdAt: p.createdAt.toISOString(),
+                    updatedAt: p.updatedAt.toISOString()
+                };
+            }), 
+            count 
+        }
     },
-    post: async (args, request) => {
-        if(!request.isAuthenticated) {
+    post: async (args, req) => {
+        if(!req.isAuth) {
             const error = new Error('You are not authenticated')
             error.code = 401
             throw error
         }
 
         const post = await Post.findById(args.postId).populate('creator', 'username')
+
         if(!post) {
             const error = new Error('Post was not found')
             error.code = 404
             throw error
         }
 
-        return post
+        return {
+            ...post._doc,
+            _id: post._id.toString(),
+            createdAt: post.createdAt.toISOString(),
+            updatedAt: post.updatedAt.toISOString()
+        }
     }
 }

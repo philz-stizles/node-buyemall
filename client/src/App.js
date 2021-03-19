@@ -31,24 +31,27 @@ class App extends Component{
     localStorage.removeItem('Buyemall')
   }
 
-  setAutoLogout = (expresIn) => {
-    setTimeout(() => this.handleLogout(), expresIn)
+  setAutoLogout = (expiresIn) => {
+    setTimeout(() => this.handleLogout(), expiresIn)
   }
 
   handleLogin = (e, { email, password }) => {
     e.preventDefault()
-    this.setState({ authLoading: true })
 
     const graphqlQuery = {
       query: `
         query {
-          login(credentials: { email: "${email}", password: "${password}" }) {
+          login(credentials: { 
+            email: "${email}",  
+            password: "${password}" 
+          }){
             userId
             token
           }
-        }
-      `
+        }`
     }
+
+    this.setState({ authLoading: true })
 
     fetch('http://localhost:5000/graphql', { 
       method: 'POST',
@@ -58,23 +61,31 @@ class App extends Component{
       .then(response => response.json())
       .then(responseData => {
         console.log(responseData)
+        if(responseData.errors && responseData.errors[0].status === 422) {
+          throw new Error('Validation failed')
+        } 
+        
         if(responseData.errors) {
-          
+          throw new Error('User creation failed')
+          // this.setState({ isAuthenticated: false, authLoading: false })
         }
 
         // Set state
         const token = responseData.data.login.token
         const userId = responseData.data.login.userId
-        this.setState({ 
-          isAuthenticated: true, 
-          authLoading: false,
-          token,
-          userId
-        })
+        this.setState({ isAuthenticated: true, authLoading: false, token, userId })
 
+        // Configure token expiration time -> 30mins
+        const remainingSeconds = 60 * 30 
+        const remainingMilliseconds = remainingSeconds * 1000;
+        const expiresIn = new Date(
+          new Date().getTime() + remainingMilliseconds
+        ).toISOString();
+  
         // Store credentials in localstorage
-        const userCredentials = { token, userId }
+        const userCredentials = { token, userId, expiresIn }
         localStorage.setItem('Buyemall', JSON.stringify(userCredentials))
+        this.setAutoLogout(remainingMilliseconds);
       })
       .catch(error => {
         console.log(error)
@@ -82,21 +93,24 @@ class App extends Component{
       })
   }
 
-  handleSignup = (e, { signupForm }) => {
-    const { username, email, password } = signupForm
+  handleSignup = (e, signupForm) => {
     e.preventDefault()
-    this.setState({ authLoading: true })
-
+    const { email,  username, password } = signupForm
     const graphqlQuery = {
       query: `
         mutation {
-          createUser(user: { username: "${username.value}", email: "${email.value}", password: "${password.value}" }) {
+          register(credentials: { 
+            email: "${email.value}",  
+            username: "${username.value}", 
+            password: "${password.value}" 
+          }){
             _id
             email
           }
-        }
-      `
+        }`
     }
+    
+    this.setState({ authLoading: true })
 
     fetch('http://localhost:5000/graphql', { 
       method: 'POST',
@@ -104,10 +118,15 @@ class App extends Component{
       body: JSON.stringify(graphqlQuery)
     })
       .then(response => response.json())
-      .then(data => {
-        console.log(data)
-        if(data.errors) {
-          
+      .then(responseData => {
+        console.log(responseData)
+        if(responseData.errors && responseData.errors[0].status === 422) {
+          throw new Error('Validation failed')
+        } 
+        
+        if(responseData.errors) {
+          throw new Error('User creation failed')
+          // this.setState({ isAuthenticated: false, authLoading: false })
         }
 
         this.setState({ isAuthenticated: false, authLoading: false })
@@ -125,27 +144,26 @@ class App extends Component{
       return
     }
 
-    const { token, expiresIn } = JSON.parse(userCredentialsJSON)
+    const userCredentials = JSON.parse(userCredentialsJSON)
 
     // if(!token || !expiresIn) {
-    if(!token) {
+    if(!userCredentials.token) {
       return
     }
 
-    // const expresInDate = new Date(expiresIn)
-    // if( expresInDate <= new Date()) {
-    //   this.handleLogout()
-    //   return
-    // }
+    const expresInDate = new Date(userCredentials.expiresIn)
+    if( expresInDate <= new Date()) {
+      this.handleLogout()
+      return
+    }
 
-    // const remainingMilliseconds = expresInDate.getTime() - new Date().getTime()
-    // localStorage.setItem('expiresIn', remainingMilliseconds)
-    this.setState({ isAuthenticated: true, token })
-    // this.setAutoLogout(remainingMilliseconds)
+    const remainingMilliseconds = expresInDate.getTime() - new Date().getTime()
+    this.setState({ isAuthenticated: true, token: userCredentials.token })
+    this.setAutoLogout(remainingMilliseconds)
   }
 
   render() {
-    const { isAuthenticated, authLoading, userId, token, showMobileNav, showBackdrop } = this.state
+    const { isAuthenticated, authLoading, userId, token, showMobileNav } = this.state
     let routes = <PublicRoutes loading={authLoading} onLogin={this.handleLogin} onSignup={this.handleSignup} />
 
     if (isAuthenticated) {
