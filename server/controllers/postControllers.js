@@ -57,15 +57,17 @@ exports.getPost = (req, res) => {
         })
 }
 
-exports.getAllPosts = async (req, res) => {
-    const currentPage = req.query.currentPage || 1
-    const limit = 5
+exports.getAllPosts = async (req, res, next) => {
+    console.log(req.query)
+    const page = +req.query.currentPage || 1  // Ensure to convert req.query.currentPage from string to number using +
+    const limit = +req.query.limit || 5 // Ensure to convert req.query.limit from string to number using +
+    const skip = (page - 1) * limit
     try {
         const count = await Post.countDocuments()
         const posts = await Post.find()
             .populate('creator', 'username')
             .sort({ createdAt: -1 })
-            .skip((currentPage - 1) * limit)
+            .skip(skip)
             .limit(limit)
         
         res.status(200).send({ status: true, data: { posts, count }, message: 'Retrieved' })

@@ -82,7 +82,7 @@ exports.login = (req, res, next) => {
                         // thuus the conversion wit + to integer 
                     })
                     
-                    return res.json({
+                    res.json({
                         status: true,
                         data: {
                             loggedInUser: { id, username, email },
@@ -90,6 +90,8 @@ exports.login = (req, res, next) => {
                         },
                         message: 'Login successful'
                     })
+
+                    return
                 })
                 .catch(error => {
                     console.log(error)
@@ -98,6 +100,7 @@ exports.login = (req, res, next) => {
                     }
 
                     next(error)
+                    return err
                 })
 
         })
@@ -108,6 +111,7 @@ exports.login = (req, res, next) => {
             }
 
             next(error)
+            return err
         })
 }
 

@@ -25,7 +25,8 @@ class Posts extends Component {
     }
 
     componentDidMount() {
-        fetch('http://localhost:5000/api/v1/posts', { 
+      const { posts } = this.state
+        fetch(`http://localhost:5000/api/v1/posts?currentPage=${posts.currentPage}&limit=${posts.limit}`, { 
             method: 'GET',
             headers: { 
                 'Content-Type': 'application/json',
@@ -117,11 +118,13 @@ class Posts extends Component {
     loadPosts = direction => {
       console.log(direction)
       const { posts } = this.state
-        if (direction) {
-          this.setState({ postsLoading: true, posts: { ...posts, items: [] } });
-        }
+      const { currentPage, limit } = posts
 
-        let page = posts.currentPage;
+      if (direction) {
+        this.setState({ postsLoading: true, posts: { ...posts, items: [] } });
+      }
+
+      let page = currentPage;
 
         if (direction === 'next') {
           page++;
@@ -135,7 +138,7 @@ class Posts extends Component {
 
         console.log(page)
 
-        fetch(`http://localhost:5000/api/v1/posts?currentPage=${page}`, {
+        fetch(`http://localhost:5000/api/v1/posts?currentPage=${page}&limit=${limit}`, {
           headers: { 
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${this.props.userCredentials.token}`
@@ -147,7 +150,7 @@ class Posts extends Component {
             }
             return res.json();
           })
-          .then(({ status, data, message }) => {
+          .then(({ status, data , message }) => {
             console.log(status, data, message)
             if(status === true) {
               this.setState({ 
@@ -284,6 +287,7 @@ class Posts extends Component {
 
     render() {
         const { postsLoading, posts, error, isEditing, editLoading, editPost } = this.state
+        const { items, count, currentPage, limit } = posts
         console.log('render', this.state)
 
         if(error) {
@@ -311,14 +315,14 @@ class Posts extends Component {
 
                 <section className="feed">
                     {postsLoading && <div style={{ textAlign: 'center', marginTop: '2rem' }}><Loader /></div>}
-                    {posts.items.length <= 0 && !postsLoading ? (<p style={{ textAlign: 'center' }}>No posts found.</p>) : null}
+                    {items.length <= 0 && !postsLoading ? (<p style={{ textAlign: 'center' }}>No posts found.</p>) : null}
                     {!postsLoading && (
                         <Paginator
                             onPrevious={this.loadPosts.bind(this, 'previous')}
                             onNext={this.loadPosts.bind(this, 'next')}
-                            lastPage={Math.ceil(posts.count / 5)}
-                            currentPage={posts.currentPage}>
-                            {posts.items.map(post => (
+                            lastPage={Math.ceil(count / limit)}
+                            currentPage={currentPage}>
+                            {items.map(post => (
                                 <PostItem key={post._id} post={post}
                                     onStartEdit={this.startEditPostHandler.bind(this, post._id)}
                                     onDelete={this.deletePostHandler.bind(this, post._id)}
