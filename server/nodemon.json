@@ -1,0 +1,10 @@
+{
+    "env": {
+        "PORT": 5000,
+        "MONGODB_LOCAL_URI": "mongodb://localhost:27017/buyemallDevDb",
+        "JWT_AUTH_SECRET": "GANCMVJTUEOPWNXMDAMZWQ",
+        "JWT_AUTH_EXPIRESIN": 1800,
+        "FILE_ALLOWED_TYPES": ["image/jpeg", "image/jpg", "image/png"],
+        "FILE_MAX_SIZE": 1000000
+    }
+}
